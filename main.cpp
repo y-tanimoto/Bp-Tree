@@ -8,10 +8,8 @@
 class Node {
 public:
     // クラスの初期化
-    Node(const int size, const bool is_root, const bool is_leaf) {
+    Node(const int size, Node* parent_node_p) {
         m_size = size;
-        m_is_root = is_root;
-        m_is_leaf = is_leaf;
 
         // キー保持用領域の確保（キー値はNaNで初期化）
         m_keys_array = std::vector<int>(m_size, -1);
@@ -40,18 +38,18 @@ public:
 
     // キー数がtotal_keysに変化した場合に、B+-Treeの性質を満たすか否か
     bool isOk(const int total_keys) {
-        // 葉ノードの場合、total_keys >= ROUNDDOWN((m_size+1)/2)かつtotal_keys <= m_sizeとなるか
-        if (m_is_leaf) {
-            if (total_keys >= floor(m_size+1)/2 && total_keys <= m_size) {
+        // 根ノードの場合、total_keys <= m_sizeとなるか
+        if (is_root()) {
+            if (total_keys <= m_size) {
                 return true;
             }
             else {
                 return false;
             }
         }
-        // 根ノードの場合はtotal_keys <= m_sizeとなるか
-        else if (m_is_root) {
-            if (total_keys <= m_size) {
+        // 葉ノードの場合、total_keys >= ROUNDDOWN((m_size+1)/2)かつtotal_keys <= m_sizeとなるか
+        else if (is_leaf()) {
+            if (total_keys >= floor(m_size+1)/2 && total_keys <= m_size) {
                 return true;
             }
             else {
@@ -101,6 +99,44 @@ public:
         return NAN;
     }
 
+    // 根ノードか否か
+    bool is_root() {
+        // 親ノードが存在しなければ根ノードと判断
+        if (m_parent_node_p == nullptr) {
+            return true;
+        }
+        return false;
+    }
+
+    // 葉ノードか否か
+    bool is_leaf() {
+        // 最初の要素のポインタがnullptrなら葉ノードと判断
+        if (m_pointers_array[0] == nullptr) {
+            return true;
+        }
+        return false;
+    }
+
+    // num番目のキー値の取得
+    int get_key(const int num) {
+        return m_keys_array[num];
+    }
+
+    // num番目のポインタの取得
+    Node* get_node_p(const int num) {
+        return m_pointers_array[num];
+    }
+
+    // 親ノードの取得
+    Node* get_parent_node() {
+        return m_parent_node_p;
+    }
+
+    // 親ノードの設定
+    void set_parent_node(Node* parent_node_p) {
+        m_parent_node_p = parent_node_p;
+    }
+
     // ノードへのキーの追加
     // 追加可能であればtrue、追加不可能であればfalseを返す
     bool add_key(const int key_to_add, Node* node_p_to_add) {
@@ -120,14 +156,21 @@ public:
 
         // 値が入る場所を探索
         for (int i=0; i<m_total_keys; i++) {
-            // i番目のキー値≦追加するキー値であれば
-            if (m_keys_array[i] <= key_to_add) {
-                // i番目がノードのサイズ-1番目であれば最後の要素に追加
-                if (i == m_size - 2) {
+            // i番目のキー値==追加するキー値であれば
+            // 追加するキー値が既存のキー値と重複するため、子ノードへのポインタのみ書き換え
+            if (m_keys_array[i] == key_to_add) {
+                m_pointers_array[i] = node_p_to_add;
+                return true;
+            }
+            // i番目のキー値<追加するキー値であれば
+            else if (m_keys_array[i] < key_to_add) {
+                std::cout << "Add" << key_to_add << std::endl;
+                // i番目がノードの末尾要素であれば最後の要素に追加
+                if (i+1 == m_total_keys) {
                     m_set(i+1, key_to_add, node_p_to_add);
                     return true;
                 }
-                // 追加するキー値≦次のキー値であればi+1番目に挿入
+                // 追加するキー値<=次のキー値であればi+1番目に挿入
                 if (m_keys_array[i+1] >= key_to_add) {
                     m_slide_back(i+1);                          // ずらして
                     m_set(i+1, key_to_add, node_p_to_add);      // 挿入
@@ -186,8 +229,7 @@ private:
     int m_size;         // ノードが持つ最大キー数
     int m_total_keys;   // ノードが持つ現在のキー数
 
-    bool m_is_root;     // このノードが根ノードか否か
-    bool m_is_leaf;     // このノードが葉ノードか否か
+    Node* m_parent_node_p;      // 親ノードへのポインタ（根ノードならnullptr）
 
     std::vector<int> m_keys_array;          // キー保持用配列
     std::vector<Node*> m_pointers_array;    // ポインタ保持用配列
@@ -223,26 +265,99 @@ private:
     }
 };
 
+// ツリークラス
+class BpTree {
+public:
+    // 初期化：根ノードの生成
+    BpTree(const int size) {
+        m_node_size = size;
+        m_root_node = new Node(m_node_size, nullptr);
+    }
+
+    // キーの追加
+    bool add_key(const int key_to_add) {
+        // キーが追加されうるノードを探索
+        Node* current_node = m_search_node_recursive(key_to_add, m_root_node);
+        if (current_node == nullptr) {
+            return false;
+        }
+
+        // キー追加
+        // ノードにキーを追加できたら完了
+        if (current_node->add_key(key_to_add, nullptr)) {
+            current_node->print_node();
+            return true;
+        }
+        // 追加できなかった場合、追加先ノードが満杯
+        // -> ノードを分割し親ノードに追加
+        else {
+            // 分割後の左ノードの要素数
+            int left_node_keys = ceil((m_node_size + 1) / 2);
+            // 分割後の右ノードの要素数
+            int right_node_keys = floor((m_node_size + 1) / 2);
+
+            // 現在のノードが根ノードであれば、新たに根ノードを生成
+            if (current_node->is_root()) {
+                Node new_root_node(m_node_size, nullptr);
+                current_node->set_parent_node(&new_root_node);
+            }
+
+            // 分割後のノードの生成
+            Node left_node(m_node_size, current_node->get_parent_node());
+            Node right_node(m_node_size, current_node->get_parent_node());
+
+            // 小さい値から順にleft_node_keys個分を左ノードに格納
+            for (int i=0; i<left_node_keys; i++) {
+                left_node.add_key(current_node->get_key(i), current_node->get_node_p(i));
+            }
+            // 残りのキーは右ノードに格納
+            for (int i=left_node_keys; i<current_node->get_total_keys(); i++) {
+                right_node.add_key(current_node->get_key(i), current_node->get_node_p(i));
+            }
+
+            // 親ノードから現在のノードを削除
+            
+
+            // 親ノードに分割後のノードを登録
+
+        }
+
+        return true;
+    }
+
+private:
+    int m_node_size;        // 各ノードのサイズ
+
+    Node* m_root_node;      // 根ノードのポインタ
+
+    // ノード検索（再帰関数）
+    Node* m_search_node_recursive(const int key_to_search, Node* current_node_p) {
+        // 葉ノードならこのノードを返す
+        if (current_node_p->is_leaf()) {
+            return current_node_p;
+        }
+
+        // キーと合致する値が現在のノードに存在しない場合
+        // キー値が値域に入るノードを子ノードから探索
+        for (int i=0; i<current_node_p->get_total_keys(); i++) {
+            if (current_node_p->get_key(i) <= key_to_search &&
+                key_to_search <= current_node_p->get_key(i)) {
+                
+                // 再帰
+                return m_search_node_recursive(key_to_search, current_node_p->get_node_p(i));
+            }
+        }
+
+        return nullptr;
+    }
+};
+
 int main() {
-    Node node(3, false, false);
-
-    std::cout << node.add_key(3, nullptr) << std::endl;
-    std::cout << node.add_key(2, nullptr) << std::endl;
-    std::cout << node.add_key(1, nullptr) << std::endl;
-    
-    node.print_node();
-
-    std::cout << node.delete_key(4) << std::endl;
-    node.print_node();
-
-    std::cout << node.delete_key(2) << std::endl;
-    node.print_node();
-
-    std::cout << node.delete_key(1) << std::endl;
-    node.print_node();
-
-    std::cout << node.delete_key(3) << std::endl;
-    node.print_node();
+    BpTree bp_tree(3);
+    std::cout << bp_tree.add_key(3) << std::endl;
+    std::cout << bp_tree.add_key(3) << std::endl;
+    std::cout << bp_tree.add_key(4) << std::endl;
+    std::cout << bp_tree.add_key(1) << std::endl;
 
     printf("Hello\n");
 }
