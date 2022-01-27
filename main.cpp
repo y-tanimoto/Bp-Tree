@@ -88,7 +88,6 @@ public:
         // 探索
         for (int i=0; i<m_total_keys; i++) {
             if (key_to_search == m_keys_array[i]) {
-                std::cout << m_keys_array[i] << std::endl;
                 return true;
             }
         }
@@ -159,6 +158,22 @@ public:
         m_parent_node_p = parent_node_p;
     }
 
+    // ノードへのキーの追加（ノードが空の場合のみ）
+    bool add_key_init(const int key_to_add, Node* left_node_p_to_add, Node* right_node_p_to_add) {
+        // 既に要素が登録されていればfalse
+        if (m_total_keys > 0) {
+            return false;
+        }
+
+        m_keys_array[0] = key_to_add;
+        m_pointers_array[0] = left_node_p_to_add;
+        m_pointers_array[1] = right_node_p_to_add;
+
+        m_total_keys = 2;
+
+        return true;
+    }
+
     // ノードへのキーの追加
     // 追加可能であればtrue、追加不可能であればfalseを返す
     bool add_key(const int key_to_add, Node* node_p_to_add) {
@@ -168,8 +183,8 @@ public:
         }
 
         // 以下は追加可能の場合
-        // 要素数0なら最初の要素に追加
-        if (m_total_keys == 0) {
+        // 要素数0なら最初の要素に追加（葉の場合のみ）
+        if (m_total_keys == 0 && is_leaf()) {
             m_keys_array[0] = key_to_add;
             m_pointers_array[0] = node_p_to_add;
             m_total_keys += 1;
@@ -186,7 +201,6 @@ public:
             }
             // i番目のキー値<追加するキー値であれば
             else if (m_keys_array[i] < key_to_add) {
-                std::cout << "Add" << key_to_add << std::endl;
                 // i番目がノードの末尾要素であれば最後の要素に追加
                 if (i+1 == m_total_keys) {
                     m_set(i+1, key_to_add, node_p_to_add);
@@ -220,7 +234,6 @@ public:
         if (!isExist(key_to_delete)) {
             return false;
         }
-        std::cout << key_to_delete << std::endl;
 
         // 以下、キーがノードに存在する場合
         // キー値の場所を検索
@@ -315,10 +328,12 @@ public:
             // 親ノードの取得
             // 現在のノードが根ノードであれば、新たに根ノードを生成
             Node* parent_node;
+            bool add_to_new_root_node = false;
             if (target_node->is_root()) {
                 Node new_root_node(m_node_size, nullptr);
                 target_node->set_parent_node(&new_root_node);
                 parent_node = &new_root_node;
+                add_to_new_root_node = true;
             }
             else {
                 parent_node = target_node->get_parent_node();
@@ -336,9 +351,15 @@ public:
                 // コピーした要素を左ノードから削除
                 target_node->delete_key(target_node->get_key(i));
             }
-
+            std::cout << "A" << std::endl;
+            // 親ノードを新しく生成した場合は左ノードと右ノードを同時に登録
+            if (add_to_new_root_node) {
+                parent_node->add_key_init(right_node.get_min_key_recursive(), target_node, &right_node);
+                return true;
+            }
+std::cout << "B" << std::endl;
             // 親ノードに分割後の右ノードを登録
-            add_key(parent_node, right_node.get_min_key_recursive(), &right_node);
+            return add_key(parent_node, right_node.get_min_key_recursive(), &right_node);
         }
     }
 
@@ -370,9 +391,10 @@ private:
         // キーと合致する値が現在のノードに存在しない場合
         // キー値が値域に入るノードを子ノードから探索
         int left = -INFINITY;
+        int right;
         for (int i=0; i<current_node_p->get_total_keys(); i++) {
             if (i >= 1) {
-                left = current_node_p->get_key(i-1));
+                left = current_node_p->get_key(i-1);
             }
             right = current_node_p->get_key(i);
 
@@ -388,10 +410,11 @@ private:
 
 int main() {
     BpTree bp_tree(3);
-    std::cout << bp_tree.add_key(3) << std::endl;
-    std::cout << bp_tree.add_key(3) << std::endl;
-    std::cout << bp_tree.add_key(4) << std::endl;
-    std::cout << bp_tree.add_key(1) << std::endl;
+    std::cout << bp_tree.add_key_to_leaf(3) << std::endl;
+    std::cout << bp_tree.add_key_to_leaf(3) << std::endl;
+    std::cout << bp_tree.add_key_to_leaf(4) << std::endl;
+    std::cout << bp_tree.add_key_to_leaf(1) << std::endl;
+    std::cout << bp_tree.add_key_to_leaf(2) << std::endl;
 
     printf("Hello\n");
 }
