@@ -31,6 +31,17 @@ public:
         return m_keys_array[m_total_keys-1];
     }
 
+    // 子ノードを含めた最小キー値
+    int get_min_key_recursive() {
+        // 葉ノードならこのノードの最小値を返す
+        if (is_leaf()) {
+            return get_min_key();
+        }
+
+        // それ以外なら最初の子ノードを再帰的に呼び出す
+        return m_pointers_array[0]->get_min_key_recursive();
+    }
+
     // キー数を取得
     int get_total_keys() {
         return m_total_keys;
@@ -120,6 +131,17 @@ public:
     // num番目のキー値の取得
     int get_key(const int num) {
         return m_keys_array[num];
+    }
+
+    // ポインタからキー値を取得
+    // 存在しなければNaNを返す
+    int get_key(Node* node_p) {
+        for (int i=0; i<m_total_keys; i++) {
+            if (m_pointers_array[i] == node_p) {
+                return m_keys_array[i];
+            }
+        }
+        return NAN;
     }
 
     // num番目のポインタの取得
@@ -274,18 +296,12 @@ public:
         m_root_node = new Node(m_node_size, nullptr);
     }
 
-    // キーの追加
-    bool add_key(const int key_to_add) {
-        // キーが追加されうるノードを探索
-        Node* current_node = m_search_node_recursive(key_to_add, m_root_node);
-        if (current_node == nullptr) {
-            return false;
-        }
-
+    // キーを特定のノードに追加
+    bool add_key(Node* target_node, const int key_to_add, Node* node_p_to_add) {
         // キー追加
         // ノードにキーを追加できたら完了
-        if (current_node->add_key(key_to_add, nullptr)) {
-            current_node->print_node();
+        if (target_node->add_key(key_to_add, nullptr)) {
+            target_node->print_node();
             return true;
         }
         // 追加できなかった場合、追加先ノードが満杯
@@ -296,31 +312,45 @@ public:
             // 分割後の右ノードの要素数
             int right_node_keys = floor((m_node_size + 1) / 2);
 
+            // 親ノードの取得
             // 現在のノードが根ノードであれば、新たに根ノードを生成
-            if (current_node->is_root()) {
+            Node* parent_node;
+            if (target_node->is_root()) {
                 Node new_root_node(m_node_size, nullptr);
-                current_node->set_parent_node(&new_root_node);
+                target_node->set_parent_node(&new_root_node);
+                parent_node = &new_root_node;
+            }
+            else {
+                parent_node = target_node->get_parent_node();
             }
 
-            // 分割後のノードの生成
-            Node left_node(m_node_size, current_node->get_parent_node());
-            Node right_node(m_node_size, current_node->get_parent_node());
+            // 分割後の右ノードの生成（左ノードは現在のノードに）
+            Node right_node(m_node_size, parent_node);
 
-            // 小さい値から順にleft_node_keys個分を左ノードに格納
-            for (int i=0; i<left_node_keys; i++) {
-                left_node.add_key(current_node->get_key(i), current_node->get_node_p(i));
+            // 左ノードから右ノードへキーを移動
+            for (int i=left_node_keys; i<target_node->get_total_keys(); i++) {
+                // 右ノードにコピー
+                right_node.add_key(target_node->get_key(i), target_node->get_node_p(i));
             }
-            // 残りのキーは右ノードに格納
-            for (int i=left_node_keys; i<current_node->get_total_keys(); i++) {
-                right_node.add_key(current_node->get_key(i), current_node->get_node_p(i));
+            for (int i=left_node_keys; i<target_node->get_total_keys(); i++) {
+                // コピーした要素を左ノードから削除
+                target_node->delete_key(target_node->get_key(i));
             }
 
-            // 親ノードから現在のノードを削除
-            
-
-            // 親ノードに分割後のノードを登録
-
+            // 親ノードに分割後の右ノードを登録
+            add_key(parent_node, right_node.get_min_key_recursive(), &right_node);
         }
+    }
+
+    // キーを葉ノードに追加
+    bool add_key_to_leaf(const int key_to_add) {
+        // キーが追加されうるノードを探索
+        Node* current_node = m_search_node_recursive(key_to_add, m_root_node);
+        if (current_node == nullptr) {
+            return false;
+        }
+
+        add_key(current_node, key_to_add, nullptr);
 
         return true;
     }
@@ -339,10 +369,14 @@ private:
 
         // キーと合致する値が現在のノードに存在しない場合
         // キー値が値域に入るノードを子ノードから探索
+        int left = -INFINITY;
         for (int i=0; i<current_node_p->get_total_keys(); i++) {
-            if (current_node_p->get_key(i) <= key_to_search &&
-                key_to_search <= current_node_p->get_key(i)) {
-                
+            if (i >= 1) {
+                left = current_node_p->get_key(i-1));
+            }
+            right = current_node_p->get_key(i);
+
+            if (left < key_to_search && right <= current_node_p->get_key(i+1)) {
                 // 再帰
                 return m_search_node_recursive(key_to_search, current_node_p->get_node_p(i));
             }
