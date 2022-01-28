@@ -1,15 +1,16 @@
-#include "node.h"
+#include "tree.h"
 
 int main() {
-    Node root_node(3);
+    Tree bp_tree(3);
 
-    
-    
-    root_node.add(3);
-    root_node.add(1);
-    root_node.add(2);
+    bp_tree.add(3);
+    bp_tree.add(2);
+    bp_tree.add(1);
 
-    root_node.print_keys();
+    bp_tree.add(4);
+    bp_tree.add(7);
+    bp_tree.add(8);
+    bp_tree.print_tree();
 
     return 0;
 }

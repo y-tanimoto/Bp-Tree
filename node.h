@@ -3,11 +3,12 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 class Node {
 public:
     // コンストラクタ
-    Node(const int size);               // 葉ノード用
+    Node(const int size, Node* parent);               // 葉ノード用
     Node(const int size, Node* left_child, Node* right_child, Node* parent);    // 葉以外のノード用
 
     // 要素の追加
@@ -15,11 +16,34 @@ public:
     bool add(Node* child_node_to_add);  // 葉以外のノード用
 
     // 要素の削除
-    bool del(const int key_to_add);     // 葉ノード用
-    bool del(Node* child_node_to_add);  // 葉以外のノード用   
+    bool del(const int num);
+
+    // 親ノードの設定
+    void set_parent(Node* parent);
 
     // 最小値の取得
     int get_min_key_recursive();
+
+    // キー値の取得
+    int get_key(const int num);
+
+    // 子ノードの取得
+    Node* get_child(const int num);
+
+    // 親ノードを取得
+    Node* get_parent();
+
+    // ノードが保持するキーの数
+    int count_keys();
+
+    // このノードが葉ノードか
+    bool is_leaf_node();
+
+    // このノードが根ノードか
+    bool is_root_node();
+
+    // ノードに要素を追加可能か否か
+    bool is_able_to_add();
 
     // ノードが保持するキーの表示
     void print_keys();
@@ -35,8 +59,8 @@ private:
 
     // メンバ関数
     void m_clear_array(int size);                                       // 配列の初期化
-    bool m_is_able_to_add();                                            // ノードに要素を追加可能か否か
     bool m_insert(const int key_to_insert, Node* child_node_to_insert); // キーを配列に挿入
     void m_slide_back(const int num);                                   // num番目から後ろの要素を1つずつ後ろへずらす
+    void m_slide_front(const int num);                                  // num番目から後ろの要素を1つずつ前へずらす
 
 };
