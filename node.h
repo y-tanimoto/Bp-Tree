@@ -9,8 +9,8 @@
 class Node {
 public:
     // コンストラクタ
-    Node(const int size, Node* parent);               // 葉ノード用
-    Node(const int size, Node* left_child, Node* right_child, Node* parent);    // 葉以外のノード用
+    Node(const int size, Node* parent);                 // 葉ノード用
+    Node(const int size, Node* parent);                 // 葉以外のノード用
 
     // 要素の追加
     bool add(const int key_to_add);     // 葉ノード用
@@ -18,6 +18,10 @@ public:
 
     // 要素の削除
     bool del(const int num);
+
+    // ノードの初期化
+    void clear();
+    void clear(Node* left_child, Node* right_child);    // 葉以外のノード用
 
     // 親ノードの設定
     void set_parent(Node* parent);
@@ -43,6 +47,9 @@ public:
     // ノードが保持するキーの数
     int count_keys();
 
+    // ノードが保持する子ノードの数
+    int count_children();
+
     // このノードが葉ノードか
     bool is_leaf_node();
 
@@ -66,7 +73,6 @@ private:
     std::vector<Node*> m_children;      // 子ノードへのポインタ保持用配列
 
     // メンバ関数
-    void m_clear_array(int size);                                       // 配列の初期化
     bool m_insert(const int key_to_insert, Node* child_node_to_insert); // キーを配列に挿入
     void m_slide_back(const int num);                                   // num番目から後ろの要素を1つずつ後ろへずらす
     void m_slide_front(const int num);                                  // num番目から後ろの要素を1つずつ前へずらす

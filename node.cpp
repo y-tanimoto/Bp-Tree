@@ -1,11 +1,5 @@
 #include "node.h"
 
-// 配列の初期化
-void Node::m_clear_array(int size) {
-    m_keys = std::vector<int>(size, NAN);
-    m_children = std::vector<Node*>(size, nullptr);
-}
-
 // キーの挿入
 bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
     // 葉ノードでなければ、子ノードはm_childrenの(i+1)番目に格納する
@@ -87,22 +81,22 @@ void Node::m_slide_front(const int num) {
 Node::Node(const int size, Node* parent) {
     m_size = size;
     m_parent_node = parent;
-    m_total_keys = 0;
     m_is_leaf = true;
 
     // 配列の初期化
-    m_clear_array(size);
+    clear();
 }
 
 // 葉以外のノード用コンストラクタ
 Node::Node(const int size, Node* left_child, Node* right_child, Node* parent) {
     m_size = size;
+
+    // 配列の初期化
+    clear();
+
     m_parent_node = parent;
     m_total_keys = 1;
     m_is_leaf = false;
-
-    // 配列の初期化
-    m_clear_array(size);
 
     // 子ノードを登録する
     m_children[0] = left_child;
@@ -152,6 +146,26 @@ bool Node::del(const int num) {
     return true;
 }
 
+// ノードの初期化
+void Node::clear() {
+    m_keys = std::vector<int>(m_size, NAN);
+    m_children = std::vector<Node*>(m_size, nullptr);
+    m_total_keys = 0;
+}
+void Node::clear(Node* left_child, Node* right_child) {
+    clear();
+    
+    m_total_keys = 1;
+    m_is_leaf = false;
+
+    // 子ノードを登録する
+    m_children[0] = left_child;
+    m_children[1] = right_child;
+
+    // キー値は右の子ノードの最小値に設定
+    m_keys[0] = right_child->get_min_key_recursive();
+}
+
 // 親ノードの設定
 void Node::set_parent(Node* parent) {
     m_parent_node = parent;
@@ -196,6 +210,11 @@ Node* Node::get_parent() {
 // ノードが保持するキーの数
 int Node::count_keys() {
     return m_total_keys;
+}
+
+// ノードが保持する子ノードの数
+int Node::count_children() {
+    return m_total_keys + 1;
 }
 
 // このノードが葉ノードか
