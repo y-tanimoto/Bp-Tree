@@ -9,8 +9,7 @@
 class Node {
 public:
     // コンストラクタ
-    Node(const int size, Node* parent);                 // 葉ノード用
-    Node(const int size, Node* parent);                 // 葉以外のノード用
+    Node(const int size, Node* parent, bool is_leaf);
 
     // 要素の追加
     bool add(const int key_to_add);     // 葉ノード用
@@ -21,7 +20,6 @@ public:
 
     // ノードの初期化
     void clear();
-    void clear(Node* left_child, Node* right_child);    // 葉以外のノード用
 
     // 親ノードの設定
     void set_parent(Node* parent);
@@ -68,6 +66,7 @@ private:
     int m_size;                         // ノードのサイズ
     int m_total_keys;                   // ノードが持つキーの数
     bool m_is_leaf;                     // このノードが葉ノードか否か
+    bool m_is_empty;                    // このノードが空か否か
     Node* m_parent_node;                // 親ノードへのポインタ
     std::vector<int> m_keys;            // キー保持用配列
     std::vector<Node*> m_children;      // 子ノードへのポインタ保持用配列

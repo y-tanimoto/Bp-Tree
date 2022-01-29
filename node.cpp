@@ -78,32 +78,14 @@ void Node::m_slide_front(const int num) {
 }
 
 // 葉ノード用コンストラクタ
-Node::Node(const int size, Node* parent) {
+Node::Node(const int size, Node* parent, bool is_leaf) {
     m_size = size;
     m_parent_node = parent;
-    m_is_leaf = true;
+    m_is_leaf = is_leaf;
+    m_is_empty = true;
 
     // 配列の初期化
     clear();
-}
-
-// 葉以外のノード用コンストラクタ
-Node::Node(const int size, Node* left_child, Node* right_child, Node* parent) {
-    m_size = size;
-
-    // 配列の初期化
-    clear();
-
-    m_parent_node = parent;
-    m_total_keys = 1;
-    m_is_leaf = false;
-
-    // 子ノードを登録する
-    m_children[0] = left_child;
-    m_children[1] = right_child;
-
-    // キー値は右の子ノードの最小値に設定
-    m_keys[0] = right_child->get_min_key_recursive();
 }
 
 // 葉ノードに要素を追加
@@ -117,6 +99,8 @@ bool Node::add(const int key_to_add) {
     if (!is_able_to_add()) {
         return false;
     }
+
+    m_is_empty = false;
 
     // 以下、追加可能の場合
     return m_insert(key_to_add, nullptr);
@@ -135,6 +119,13 @@ bool Node::add(Node* child_node_to_add) {
     }
 
     // 以下、追加可能の場合
+    // 空のノードであれば、1番左に子ノードを追加して完了（キーはまだ設定しない）
+    if (m_is_empty) {
+        m_children[0] = child_node_to_add;
+        m_is_empty = false;
+        return true;
+    }
+
     // キー値を取得（追加するノードの最小値）
     int key = child_node_to_add->get_min_key_recursive();
     return m_insert(key, child_node_to_add);
@@ -151,19 +142,7 @@ void Node::clear() {
     m_keys = std::vector<int>(m_size, NAN);
     m_children = std::vector<Node*>(m_size, nullptr);
     m_total_keys = 0;
-}
-void Node::clear(Node* left_child, Node* right_child) {
-    clear();
-    
-    m_total_keys = 1;
-    m_is_leaf = false;
-
-    // 子ノードを登録する
-    m_children[0] = left_child;
-    m_children[1] = right_child;
-
-    // キー値は右の子ノードの最小値に設定
-    m_keys[0] = right_child->get_min_key_recursive();
+    m_is_empty = true;
 }
 
 // 親ノードの設定
@@ -214,6 +193,9 @@ int Node::count_keys() {
 
 // ノードが保持する子ノードの数
 int Node::count_children() {
+    if (m_is_empty) {
+        return 0;
+    }
     return m_total_keys + 1;
 }
 

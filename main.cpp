@@ -23,10 +23,6 @@ int main() {
     bp_tree.print_tree();
     bp_tree.add(37);
     bp_tree.print_tree();
-    bp_tree.add(43);
-    bp_tree.print_tree();
-    bp_tree.add(47);
-    bp_tree.print_tree();
     bp_tree.add(5);
     bp_tree.print_tree();
     bp_tree.add(19);

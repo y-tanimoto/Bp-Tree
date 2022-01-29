@@ -6,7 +6,7 @@ Tree::Tree(const int size) {
     m_node_size = size;
 
     // 最初のノード（根ノードかつ葉ノード）を生成
-    m_root_node = new Node(size, nullptr);
+    m_root_node = new Node(size, nullptr, true);
 }
 
 // 葉ノードへのキーの追加
@@ -27,10 +27,10 @@ bool Tree::add(const int key_to_add) {
 
     // 左ノード、右ノードの用意（左ノードは追加先ノードを再利用）
     Node* left_node = target_node;
-    Node* right_node = new Node(m_node_size, nullptr);
+    Node* right_node = new Node(m_node_size, nullptr, true);
 
     // ソート用のノードを生成
-    Node sort_node(m_node_size + 1, nullptr);
+    Node sort_node(m_node_size + 1, nullptr, true);
     // sort_nodeに左ノードのすべての要素をコピー
     for (int i=0; i<left_node->count_keys(); i++) {
         sort_node.add(left_node->get_key(i));
@@ -68,7 +68,9 @@ bool Tree::add(const int key_to_add) {
     Node* parent_node;
     // 左ノードが根ノードの場合は新しく根ノードを生成
     if (left_node->is_root_node()) {
-        parent_node = new Node(m_node_size, left_node, right_node, nullptr);
+        parent_node = new Node(m_node_size, nullptr, false);
+        parent_node->add(left_node);
+        parent_node->add(right_node);
         left_node->set_parent(parent_node);
         right_node->set_parent(parent_node);
         m_root_node = parent_node;
@@ -129,12 +131,15 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
 
     // 左ノードの用意（左ノードは追加先ノードを再利用）
     Node* left_node = parent_node;
+    // 右ノードの用意
+    Node* right_node = new Node(m_node_size, nullptr, false);
 
     // ソート用のノードを生成
-    Node sort_node(m_node_size + 1, left_node->get_child(0), left_node->get_child(1), nullptr);
+    Node sort_node(m_node_size + 1, nullptr, false);
     // sort_nodeに左ノードのすべての要素をコピー(0,1番目は宣言時にコピー済み)
-    for (int i=2; i<left_node->count_children(); i++) {
+    for (int i=0; i<left_node->count_children(); i++) {
         sort_node.add(left_node->get_child(i));
+        std::cout << "left child: " << left_node->get_child(i)->get_min_key_recursive() << std::endl;
     }
     // 追加するキーをsort_nodeに追加
     sort_node.add(child_node);
@@ -150,20 +155,18 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
         left_hold += 1;
     }
 
-    // 右ノードの用意
-    Node* right_node = new Node(m_node_size, sort_node.get_child(left_hold), sort_node.get_child(left_hold+1), nullptr);
-
-    // 左ノードを初期化
-    left_node->clear(sort_node.get_child(0), sort_node.get_child(1));
+    // 左ノードをクリア
+    left_node->clear();
 
     // ノードはキーの追加時にソートされるので、それを利用し前から順に取り出す
     for (int i=0; i<left_hold; i++) {
         std::cout << "madd to left: " << i << " left-hold=" << left_hold << std::endl;
+        std::cout << sort_node.get_child(i)->get_min_key_recursive() << std::endl;
         sort_node.get_child(i)->set_parent(left_node);
         left_node->add(sort_node.get_child(i));
     }
     for (int i=left_hold; i<sort_node.count_children(); i++) {
-        std::cout << "madd to right: " << i << std::endl;
+        std::cout << sort_node.get_child(i)->get_min_key_recursive() << std::endl;
         sort_node.get_child(i)->set_parent(right_node);
         right_node->add(sort_node.get_child(i));
     }
@@ -174,11 +177,12 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
     Node* left_parent_node;
     // 左ノードが根ノードの場合は新しく根ノードを生成
     if (left_node->is_root_node()) {
-        left_parent_node = new Node(m_node_size, left_node, right_node, nullptr);
+        left_parent_node = new Node(m_node_size, nullptr, false);
+        left_parent_node->add(left_node);
+        left_parent_node->add(right_node);
         left_node->set_parent(left_parent_node);
         right_node->set_parent(left_parent_node);
         m_root_node = left_parent_node;
-        std::cout << "changed root node1" << std::endl;
         return true;
     }
     left_parent_node = left_node->get_parent();
