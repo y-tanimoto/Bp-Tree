@@ -130,10 +130,11 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
 
     // 左ノードのleft_hold+2番目以降の要素を右ノードに移行
     for (int i=left_hold+2; i<left_node->count_keys(); i++) {
+        left_node->get_child(i)->set_parent(right_node);
         right_node->add(left_node->get_child(i));
     }
     // 右ノードに移行した子ノードは左ノードから削除
-    for (int i=left_hold; i<left_node->count_keys(); i++) {
+    for (int i=left_node->count_keys(); i>=left_hold; i--) {
         left_node->del(i);
     }
 
@@ -141,26 +142,28 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
     // 右ノードの最小値と比較
     if (child_node->get_min_key_recursive() < right_node->get_min_key_recursive()) {
         left_node->add(child_node);
+        child_node->set_parent(left_node);
     }
     else {
         right_node->add(child_node);
+        child_node->set_parent(right_node);
     }
 
-    // 親ノードの親ノードを取得
-    Node* parent_parent_node;
-    // 親ノードが根ノードの場合は新しく根ノードを生成
-    if (parent_node->is_root_node()) {
-        parent_parent_node = new Node(m_node_size, left_node, right_node, nullptr);
-        left_node->set_parent(parent_parent_node);
-        right_node->set_parent(parent_parent_node);
-        m_root_node = parent_parent_node;
+    // 左ノードの親ノードを取得
+    Node* left_parent_node;
+    // 左ノードが根ノードの場合は新しく根ノードを生成
+    if (left_node->is_root_node()) {
+        left_parent_node = new Node(m_node_size, left_node, right_node, nullptr);
+        left_node->set_parent(left_parent_node);
+        right_node->set_parent(left_parent_node);
+        m_root_node = left_parent_node;
         return true;
     }
-    parent_parent_node = parent_node->get_parent();
+    left_parent_node = left_node->get_parent();
 
     // 右ノードに親ノードを登録
-    right_node->set_parent(parent_parent_node);
+    right_node->set_parent(left_parent_node);
 
     // 親ノードの親ノードに右ノードを登録
-    return m_add_child_node(parent_parent_node, right_node);
+    return m_add_child_node(left_parent_node, right_node);
 }

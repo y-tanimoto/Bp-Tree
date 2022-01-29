@@ -48,30 +48,23 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 
 // num番目から後ろの要素を1つずつ後ろへずらす
 void Node::m_slide_back(const int num) {
-    if (is_leaf_node()) {
-        for (int j=m_total_keys; j>=num+1; j--) {
-            m_keys[j] = m_keys[j-1];
-            m_children[j] = m_children[j-1];
-        }
-    }
-    else {
-        for (int j=m_total_keys; j>=num+1; j--) {
-            m_keys[j] = m_keys[j-1];
-            m_children[j] = m_children[j-1];
-        }
+    m_children[m_total_keys+1] = m_children[m_total_keys];  // m_childrenのみm_keysより1要素多い
+    for (int j=m_total_keys; j>=num+1; j--) {
+        m_keys[j] = m_keys[j-1];
+        m_children[j] = m_children[j-1];
     }
     m_total_keys += 1;
 }
 
 // num番目から後ろの要素を1つずつ前へずらす
 void Node::m_slide_front(const int num) {
-    // 葉ノードの場合
+    // 葉のノードの場合
     if (is_leaf_node()) {
         for (int j=num; j<=m_total_keys-1; j++) {
             m_keys[j] = m_keys[j+1];
             m_children[j] = m_children[j+1];
         }
-
+        m_children[m_total_keys] = m_children[m_total_keys+1];
         m_total_keys -= 1;
 
         // 最後の要素は削除
@@ -81,10 +74,9 @@ void Node::m_slide_front(const int num) {
     // 葉以外のノードの場合
     else {
         for (int j=num; j<=m_total_keys-1; j++) {
-            m_keys[j] = m_keys[j+1];
+            m_keys[j-1] = m_keys[j];
             m_children[j] = m_children[j+1];
         }
-
         m_total_keys -= 1;
 
         // 最後の要素は削除
