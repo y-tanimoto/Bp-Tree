@@ -102,7 +102,7 @@ Node* Tree::search(const int key_to_search) {
 
 // 各ノードの表示
 void Tree::print_tree() {
-    m_root_node->print_keys();
+    m_root_node->print_keys(1);
 }
 
 // 葉以外のノードに子ノードを追加

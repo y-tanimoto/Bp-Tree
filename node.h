@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <iomanip>
 
 class Node {
 public:
@@ -50,9 +51,10 @@ public:
 
     // ノードに要素を追加可能か否か
     bool is_able_to_add();
+    bool is_able_to_add_child();
 
     // ノードが保持するキーの表示
-    void print_keys();
+    void print_keys(int height);
 
 private:
     // メンバ変数

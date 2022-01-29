@@ -12,6 +12,8 @@ int main() {
     bp_tree.add(8);
     bp_tree.add(5);
     bp_tree.add(6);
+    bp_tree.print_tree();
+    
     bp_tree.add(10);
     bp_tree.add(11);
     bp_tree.print_tree();

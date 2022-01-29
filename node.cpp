@@ -30,7 +30,6 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 
         // 左の値 == key_to_insertなら、既にキー値が存在するのでfalse
         if (left == key_to_insert) {
-            print_keys();
             return false;
         }
 
@@ -49,26 +48,49 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 
 // num番目から後ろの要素を1つずつ後ろへずらす
 void Node::m_slide_back(const int num) {
-    m_children[m_total_keys+1] = m_children[m_total_keys];  // m_childrenのみm_keysより1要素多い
-    for (int j=m_total_keys; j>=num+1; j--) {
-        m_keys[j] = m_keys[j-1];
-        m_children[j] = m_children[j-1];
+    if (is_leaf_node()) {
+        for (int j=m_total_keys; j>=num+1; j--) {
+            m_keys[j] = m_keys[j-1];
+            m_children[j] = m_children[j-1];
+        }
+    }
+    else {
+        for (int j=m_total_keys; j>=num+1; j--) {
+            m_keys[j] = m_keys[j-1];
+            m_children[j] = m_children[j-1];
+        }
     }
     m_total_keys += 1;
 }
 
 // num番目から後ろの要素を1つずつ前へずらす
 void Node::m_slide_front(const int num) {
-    for (int j=num; j<=m_total_keys-1; j++) {
-        m_keys[j] = m_keys[j+1];
-        m_children[j] = m_children[j+1];
-    }
-    m_children[m_total_keys] = m_children[m_total_keys+1];
-    m_total_keys -= 1;
+    // 葉ノードの場合
+    if (is_leaf_node()) {
+        for (int j=num; j<=m_total_keys-1; j++) {
+            m_keys[j] = m_keys[j+1];
+            m_children[j] = m_children[j+1];
+        }
 
-    // 最後の要素は削除
-    m_keys[m_total_keys] = NAN;
-    m_children[m_total_keys] = nullptr;
+        m_total_keys -= 1;
+
+        // 最後の要素は削除
+        m_keys[m_total_keys] = NAN;
+        m_children[m_total_keys] = nullptr;
+    }
+    // 葉以外のノードの場合
+    else {
+        for (int j=num; j<=m_total_keys-1; j++) {
+            m_keys[j] = m_keys[j+1];
+            m_children[j] = m_children[j+1];
+        }
+
+        m_total_keys -= 1;
+
+        // 最後の要素は削除
+        m_keys[m_total_keys] = NAN;
+        m_children[m_total_keys+1] = nullptr;
+    }
 }
 
 // 葉ノード用コンストラクタ
@@ -203,21 +225,22 @@ bool Node::is_root_node() {
 
 // ノードに要素を追加可能か否か
 bool Node::is_able_to_add() {
-    // 葉ノードならm_size個まで
-    if (is_leaf_node() && m_total_keys + 1 > m_size) {
+    if (m_total_keys + 1 > m_size) {
         return false;
     }
-    // 葉以外のノードならm_size+1個まで
-    else if (!is_leaf_node() && m_total_keys + 1 > m_size + 1) {
+    return true;
+}
+bool Node::is_able_to_add_child() {
+    if (!is_leaf_node() && m_total_keys + 1 > m_size + 1) {
         return false;
     }
     return true;
 }
 
 // ノードが保持するキーの表示
-void Node::print_keys() {
+void Node::print_keys(int height) {
     for (int i=0; i<m_total_keys; i++) {
-        std::cout << "[" << m_keys[i] << "]";
+        std::cout << std::setw(height) << "[" << m_keys[i] << "]";
     }
     std::cout << std::endl;
 
@@ -226,6 +249,6 @@ void Node::print_keys() {
         if (m_children[i] == nullptr) {
             break;
         }
-        m_children[i]->print_keys();
+        m_children[i]->print_keys(height+1);
     }
 }
