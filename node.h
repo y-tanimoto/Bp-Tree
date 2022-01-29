@@ -21,6 +21,12 @@ public:
     // 親ノードの設定
     void set_parent(Node* parent);
 
+    // 隣接ノードの設定
+    void set_right_node(Node* right_node);
+
+    // 隣接ノードの取得
+    Node* get_right_node();
+
     // 最小値の取得
     int get_min_key_recursive();
 

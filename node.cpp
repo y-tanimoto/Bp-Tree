@@ -8,19 +8,25 @@ void Node::m_clear_array(int size) {
 
 // キーの挿入
 bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
-    // そうでなければ、前から順に探索
+    // 葉ノードでなければ、子ノードはm_childrenの(i+1)番目に格納する
+    int offset = 1;
+    if (is_leaf_node()) {
+        offset = 0;
+    }
+
     int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に
     int right;
     for(int i=0; i<=m_total_keys; i++) {
-        right = m_keys[i];
-
         if (i == m_total_keys) {
             // 一番うしろの要素+1番目まで到達した場合はそこに追加
-            m_keys[i] = key_to_insert;              // i番目にキーを登録
-            m_children[i] = child_node_to_insert;   // i番目に子ノードを登録
+            m_keys[i] = key_to_insert;                      // i番目にキーを登録
+            m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
             m_total_keys += 1;
+            std::cout << "append " << key_to_insert << " at last" << std::endl;
             return true;
         }
+        right = m_keys[i];
+        std::cout << "  right: " << right << std::endl;
 
         // 左の値 == key_to_insertなら、既にキー値が存在するのでfalse
         if (left == key_to_insert) {
@@ -30,9 +36,9 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 
         // 左の値 < key_to_insert < 右の値なら、そこに挿入
         if (left < key_to_insert && key_to_insert < right) {
-            m_slide_back(i);                        // i番目から後ろの要素を後ろにずらす
-            m_keys[i] = key_to_insert;              // i番目にキーを登録
-            m_children[i] = child_node_to_insert;   // i番目に子ノードを登録
+            m_slide_back(i);                                // i番目から後ろの要素を後ろにずらす
+            m_keys[i] = key_to_insert;                      // i番目にキーを登録
+            m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
             return true;
         }
 
@@ -43,6 +49,7 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 
 // num番目から後ろの要素を1つずつ後ろへずらす
 void Node::m_slide_back(const int num) {
+    m_children[m_total_keys+1] = m_children[m_total_keys];  // m_childrenのみm_keysより1要素多い
     for (int j=m_total_keys; j>=num+1; j--) {
         m_keys[j] = m_keys[j-1];
         m_children[j] = m_children[j-1];
@@ -56,6 +63,7 @@ void Node::m_slide_front(const int num) {
         m_keys[j] = m_keys[j+1];
         m_children[j] = m_children[j+1];
     }
+    m_children[m_total_keys] = m_children[m_total_keys+1];
     m_total_keys -= 1;
 
     // 最後の要素は削除
@@ -78,7 +86,7 @@ Node::Node(const int size, Node* parent) {
 Node::Node(const int size, Node* left_child, Node* right_child, Node* parent) {
     m_size = size;
     m_parent_node = parent;
-    m_total_keys = 2;
+    m_total_keys = 1;
     m_is_leaf = false;
 
     // 配列の初期化
@@ -123,6 +131,7 @@ bool Node::add(Node* child_node_to_add) {
     // 以下、追加可能の場合
     // キー値を取得（追加するノードの最小値）
     int key = child_node_to_add->get_min_key_recursive();
+    std::cout << "key:" << key << std::endl;
     return m_insert(key, child_node_to_add);
 }
 
@@ -135,6 +144,16 @@ bool Node::del(const int num) {
 // 親ノードの設定
 void Node::set_parent(Node* parent) {
     m_parent_node = parent;
+}
+
+// 隣接ノードの設定
+void Node::set_right_node(Node* right_node) {
+    m_children[m_size] = right_node;
+}
+
+// 隣接ノードの設定
+Node* Node::get_right_node() {
+    return m_children[m_size];
 }
 
 // 最小値の取得
@@ -184,7 +203,12 @@ bool Node::is_root_node() {
 
 // ノードに要素を追加可能か否か
 bool Node::is_able_to_add() {
-    if (m_total_keys + 1 > m_size) {
+    // 葉ノードならm_size個まで
+    if (is_leaf_node() && m_total_keys + 1 > m_size) {
+        return false;
+    }
+    // 葉以外のノードならm_size+1個まで
+    else if (!is_leaf_node() && m_total_keys + 1 > m_size + 1) {
         return false;
     }
     return true;
@@ -198,7 +222,7 @@ void Node::print_keys() {
     std::cout << std::endl;
 
     // 子ノードがあれば子ノードでも表示
-    for (int i=0; i<m_total_keys; i++) {
+    for (int i=0; i<=m_total_keys; i++) {
         if (m_children[i] == nullptr) {
             break;
         }
