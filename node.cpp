@@ -22,11 +22,9 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
             m_keys[i] = key_to_insert;                      // i番目にキーを登録
             m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
             m_total_keys += 1;
-            std::cout << "append " << key_to_insert << " at last" << std::endl;
             return true;
         }
         right = m_keys[i];
-        std::cout << "  right: " << right << std::endl;
 
         // 左の値 == key_to_insertなら、既にキー値が存在するのでfalse
         if (left == key_to_insert) {
@@ -145,7 +143,6 @@ bool Node::add(Node* child_node_to_add) {
     // 以下、追加可能の場合
     // キー値を取得（追加するノードの最小値）
     int key = child_node_to_add->get_min_key_recursive();
-    std::cout << "key:" << key << std::endl;
     return m_insert(key, child_node_to_add);
 }
 
