@@ -123,10 +123,11 @@ bool Node::add(Node* child_node_to_add) {
     if (m_is_empty) {
         m_children[0] = child_node_to_add;
         m_is_empty = false;
+        m_total_keys = 0;
         return true;
     }
 
-    // キー値を取得（追加するノードの最小値）
+    // キー値を取得（追加する部分木の最小値）
     int key = child_node_to_add->get_min_key_recursive();
     return m_insert(key, child_node_to_add);
 }
@@ -139,6 +140,7 @@ bool Node::del(const int num) {
 
 // ノードの初期化
 void Node::clear() {
+    std::cout << "clear " << this << std::endl;
     m_keys = std::vector<int>(m_size, NAN);
     m_children = std::vector<Node*>(m_size, nullptr);
     m_total_keys = 0;
