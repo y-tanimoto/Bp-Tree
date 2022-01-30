@@ -10,7 +10,7 @@ public:
     bool add(Node* parent_node, const int key_to_add, Node* node_to_add);
 
     // キーの探索
-    Node* search(const int key_to_search);
+    void search(const int key_to_search);
 
     // 各ノードの表示
     void print_tree();
@@ -25,4 +25,7 @@ private:
     // ノードを分割
     // 戻り値は右側ノード（左側ノードは引数に与えられたノードを再利用）
     Node* m_div(Node* left_node, int key_to_add, Node* node_to_add);
+
+    // キーが入る葉ノードを探索
+    Node* m_search_leaf_node(const int key_to_search);
 };

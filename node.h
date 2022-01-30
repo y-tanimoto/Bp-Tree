@@ -73,6 +73,7 @@ public:
 
     // ノードが保持するキーの表示
     void print_keys(int height);
+    void print_keys_once(int height);
 
     // 子ノードの解放
     void clear_recursive();
@@ -84,8 +85,8 @@ private:
     bool m_is_leaf;                     // このノードが葉ノードか否か
     bool m_is_empty;                    // このノードが空か否か
     Node* m_parent_node;                // 親ノードへのポインタ
-    int m_keys[M];            // キー保持用配列
-    Node* m_children[M+1];      // 子ノードへのポインタ保持用配列
+    int m_keys[M];                      // キー保持用配列
+    Node* m_children[M+1];              // 子ノードへのポインタ保持用配列
 
     // メンバ関数
     bool m_insert(const int key_to_insert, Node* child_node_to_insert); // キーを配列に挿入

@@ -15,7 +15,7 @@ bool Tree::add(const int key_to_add, Node* node_to_add) {
     }
 
     // 追加先ノードを探索
-    Node* target_node = search(key_to_add);
+    Node* target_node = m_search_leaf_node(key_to_add);
 
     return add(target_node, key_to_add, node_to_add);
 }
@@ -44,32 +44,66 @@ bool Tree::add(Node* parent_node, const int key_to_add, Node* node_to_add) {
 }
 
 // キーの探索
-Node* Tree::search(const int key_to_search) {
-    // ルートノードから順に探索
+void Tree::search(const int key_to_search) {
+    std::cout << std::endl << "----------------------" << std::endl << "search key " << key_to_search << std::endl;
+
     Node* current_node = m_root_node;
-    
-    // 葉ノードにたどり着くまで探索
-    int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に
-    int right;
-    while (!current_node->is_leaf_node()) {
+    int node_count = 1;
+
+    while (current_node != nullptr) {
+        int left = std::numeric_limits<int>::min();     // 最小値の初期値はintの最小値に
+        int right;
+
         for (int i=0; i<=current_node->count_keys(); i++) {
             if (i == current_node->count_keys()) {
-                // ノードの最後の要素にたどり着いたら、rightの値はintの最大値に
                 right = std::numeric_limits<int>::max();
             }
             else {
-                // そうでなければ、rightの値はi番目のキー値
                 right = current_node->get_key(i);
             }
-
             if (left <= key_to_search && key_to_search < right) {
+                std::cout << node_count << ") ";
+                current_node->print_keys_once(0);
+
+                if (i == 0) {
+                    std::cout << std::setw(node_count) << "   " << key_to_search << " < " << right << std::endl;
+                    if (!current_node->is_leaf_node()) {
+                        std::cout << "    >> Go to 1st node" << std::endl;
+                    }
+                }
+                else if (i == current_node->count_keys()) {
+                    std::cout << std::setw(node_count) << "   " << left << " <= " << key_to_search << std::endl;
+                    if (!current_node->is_leaf_node()) {
+                        std::cout << "    >> Go to last node" << std::endl;
+                    }
+                }
+                else {
+                    std::cout << std::setw(node_count) << "   " << left << " <= " << key_to_search << " < " << right << std::endl;
+                    if (!current_node->is_leaf_node()) {
+                        std::cout << "    >> Go to " << (i+1) << "th node" << std::endl;
+                    }
+                }
+
+                node_count += 1;
                 current_node = current_node->get_child(i);
+
+                if (current_node == nullptr) {
+                    if (left == key_to_search) {
+                        std::cout << "key " << key_to_search << " exists." << std::endl;
+                    }
+                    else {
+                        std::cout << "key " << key_to_search << " not found." << std::endl;
+                    }
+                }
+
                 break;
             }
+            left = right;
         }
     }
+    std::cout << "----------------------" << std::endl;
 
-    return current_node;
+    return;
 }
 
 // 各ノードの表示
@@ -146,4 +180,33 @@ Node* Tree::m_div(Node* left_node, int key_to_add, Node* node_to_add) {
     }
 
     return right_node;
+}
+
+// キーが入る葉探索
+Node* Tree::m_search_leaf_node(const int key_to_search) {
+    // ルートノードから順に探索
+    Node* current_node = m_root_node;
+    
+    // 葉ノードにたどり着くまで探索
+    int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に
+    int right;
+    while (!current_node->is_leaf_node()) {
+        for (int i=0; i<=current_node->count_keys(); i++) {
+            if (i == current_node->count_keys()) {
+                // ノードの最後の要素にたどり着いたら、rightの値はintの最大値に
+                right = std::numeric_limits<int>::max();
+            }
+            else {
+                // そうでなければ、rightの値はi番目のキー値
+                right = current_node->get_key(i);
+            }
+
+            if (left <= key_to_search && key_to_search < right) {
+                current_node = current_node->get_child(i);
+                break;
+            }
+        }
+    }
+
+    return current_node;
 }

@@ -39,6 +39,11 @@ int main() {
     bp_tree.add(40, nullptr);
     bp_tree.print_tree();
 
+    // キーの検索
+    bp_tree.search(29);
+    bp_tree.search(30);
+    bp_tree.search(31);
+
     // メモリ解放
     bp_tree.clear_tree();
 

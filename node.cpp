@@ -270,6 +270,13 @@ void Node::print_keys(int height) {
         m_children[i]->print_keys(height+1);
     }
 }
+void Node::print_keys_once(int height) {
+    std::cout << std::setw(height);
+    for (int i=0; i<m_total_keys; i++) {
+        std::cout << "[" << m_keys[i] << "]";
+    }
+    std::cout << std::endl;
+}
 
 // 子ノードの解放
 void Node::clear_recursive() {
