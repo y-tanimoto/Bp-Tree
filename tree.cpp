@@ -44,12 +44,19 @@ bool Tree::add(const int key_to_add) {
     if (left_node->count_keys() + 1 - left_hold > right_hold) {
         left_hold += 1;
     }
-
+std::cout << "before left:";
+    left_node->print_keys(1);
     // left_hold番目から先の要素は右ノードに移動
-    for (int i=left_hold; i<left_node->count_keys(); i++) {
+    int keys = left_node->count_keys()-1;
+    for (int i=keys; i >= left_hold; i--) {
         std::cout << "add to right: " << i << std::endl;
         right_node->add(left_node->pull_key(i));
     }
+
+    std::cout << "left:";
+    left_node->print_keys(1);
+    std::cout << "right:";
+    right_node->print_keys(1);
 
     // 右ノードに隣接ノードへのポインタを設定
     right_node->set_right_node(left_node->get_right_node());
