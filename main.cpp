@@ -1,46 +1,14 @@
-#include "tree.h"
+#include "node.h"
 
 int main() {
-    Tree bp_tree(M);
-    bp_tree.add(2);
-    bp_tree.print_tree();
-    bp_tree.add(3);
-    bp_tree.print_tree();
-    bp_tree.add(7);
-    bp_tree.print_tree();
-    bp_tree.add(11);
-    bp_tree.print_tree();
-    bp_tree.add(5);
-    bp_tree.print_tree();
-    bp_tree.add(19);
-    bp_tree.print_tree();
-    bp_tree.add(13);
-    bp_tree.print_tree();
-    bp_tree.add(17);
-    bp_tree.print_tree();
-    bp_tree.add(23);
-    bp_tree.print_tree();
-    bp_tree.add(29);
-    bp_tree.print_tree();
-    bp_tree.add(31);
-    bp_tree.print_tree();
-    bp_tree.add(37);
-    bp_tree.print_tree();
-    bp_tree.add(43);
-    bp_tree.print_tree();
-    bp_tree.add(47);
-    bp_tree.print_tree();
-    bp_tree.add(41);
-    bp_tree.print_tree();
+    Node root_node(true, nullptr);
 
-    bp_tree.add(10);
-    bp_tree.print_tree();
+    root_node.add(2, nullptr);
+    root_node.add(3, nullptr);
+    root_node.add(1, nullptr);
+    root_node.del(2);
 
-    bp_tree.add(40);
-    bp_tree.print_tree();
-
-    // メモリ解放
-    bp_tree.clear_tree();
+    root_node.print_node();
 
     return 0;
 }
