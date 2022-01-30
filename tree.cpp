@@ -136,7 +136,6 @@ Node* Tree::m_div(Node* left_node, int key_to_add, Node* node_to_add) {
         left_node->add(key_to_add, node_to_add);
     }
     else {
-        right_node->print_keys(1);
         right_node->add(key_to_add, node_to_add);
     }
 
