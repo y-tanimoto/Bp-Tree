@@ -40,12 +40,23 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 
 // num番目から後ろの要素を1つずつ後ろへずらす
 void Node::m_slide_back(const int num) {
-    m_children[m_total_keys+1] = m_children[m_total_keys];  // m_childrenのみm_keysより1要素多い
-    for (int j=m_total_keys; j>=num+1; j--) {
-        m_keys[j] = m_keys[j-1];
-        m_children[j] = m_children[j-1];
+    // 葉ノードの場合
+    if (is_leaf_node()) {
+        m_children[m_total_keys+1] = m_children[m_total_keys];  // m_childrenのみm_keysより1要素多い
+        for (int j=m_total_keys; j>=num+1; j--) {
+            m_keys[j] = m_keys[j-1];
+            m_children[j] = m_children[j-1];
+        }
+        m_total_keys += 1;
     }
-    m_total_keys += 1;
+    // 葉以外のノードの場合
+    else {
+        for (int j=m_total_keys; j>=num+1; j--) {
+            m_keys[j-1] = m_keys[j];
+            m_children[j] = m_children[j-1];
+        }
+        m_total_keys += 1;
+    }
 }
 
 // num番目から後ろの要素を1つずつ前へずらす
@@ -137,12 +148,19 @@ bool Node::del(const int num) {
     m_slide_front(num);
     return true;
 }
+bool Node::del(Node* del_node) {
+    for (int i=0; i<=m_total_keys; i++) {
+        if (m_children[i] == del_node) {
+            m_slide_front(i);
+            return true;
+        }
+    }
+    return false;
+}
 
 // ノードの初期化
 void Node::clear() {
     std::cout << "clear " << this << std::endl;
-    m_keys = std::vector<int>(m_size, NAN);
-    m_children = std::vector<Node*>(m_size, nullptr);
     m_total_keys = 0;
     m_is_empty = true;
 }
@@ -178,9 +196,33 @@ int Node::get_key(const int num) {
     return m_keys[num];
 }
 
+// キー値の取り出し（取得してこのノードからは除去）
+int Node::pull_key(const int num) {
+    int ret = get_key(num);
+    del(num);
+    return ret;
+}
+
+// 一番右にあるキー値の取り出し
+int Node::pull_last_key() {
+    return pull_key(m_total_keys-1);
+}
+
 // 子ノードの取得
 Node* Node::get_child(const int num) {
     return m_children[num];
+}
+
+// 子ノードを取り出し（取得してこのノードからは除去）
+Node* Node::pull_child(const int num) {
+    Node* ret = get_child(num);
+    del(num);
+    return ret;
+}
+
+// 一番右にある子ノードを取り出し
+Node* Node::pull_last_child() {
+    return pull_child(m_total_keys);
 }
 
 // 親ノードを取得

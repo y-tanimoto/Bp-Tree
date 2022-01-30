@@ -28,17 +28,12 @@ bool Tree::add(const int key_to_add) {
     // 左ノード、右ノードの用意（左ノードは追加先ノードを再利用）
     Node* left_node = target_node;
     Node* right_node = new Node(m_node_size, nullptr, true);
-    
-    // ソート用のノードを生成
-    Node sort_node(m_node_size + 2, nullptr, true);
-    // sort_nodeに左ノードのすべての要素をコピー
-    for (int i=0; i<left_node->count_keys(); i++) {
-        sort_node.add(left_node->get_key(i));
-    }
-    // 追加するキーをsort_nodeに追加
-    sort_node.add(key_to_add);
-    // 左ノードを初期化
-    left_node->clear();
+
+    // 左ノードの最後の要素を右ノードに移動
+    right_node->add(left_node->pull_last_key());
+
+    // 左ノードに新しいキーを追加
+    left_node->add(key_to_add);
 
     // 分割後の左右ノードの保持数を計算
     // 左：ROUNDUP((m+1)/2)個
@@ -46,18 +41,14 @@ bool Tree::add(const int key_to_add) {
     // 右：ROUNDDOWN((m+1)/2)個
     int right_hold = floor((m_node_size+1)/2);
     // 右ノードに多く追加される場合はleft_hold += 1
-    if (sort_node.count_keys() - left_hold > right_hold) {
+    if (left_node->count_keys() + 1 - left_hold > right_hold) {
         left_hold += 1;
     }
 
-    // ノードはキーの追加時にソートされるので、それを利用し前から順に取り出す
-    for (int i=0; i<left_hold; i++) {
-        std::cout << "add to left: " << i << std::endl;
-        left_node->add(sort_node.get_key(i));
-    }
-    for (int i=left_hold; i<sort_node.count_keys(); i++) {
+    // left_hold番目から先の要素は右ノードに移動
+    for (int i=left_hold; i<left_node->count_keys(); i++) {
         std::cout << "add to right: " << i << std::endl;
-        right_node->add(sort_node.get_key(i));
+        right_node->add(left_node->pull_key(i));
     }
 
     // 右ノードに隣接ノードへのポインタを設定
@@ -135,17 +126,11 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
     // 右ノードの用意
     Node* right_node = new Node(m_node_size, nullptr, false);
 
-    // ソート用のノードを生成
-    Node sort_node(m_node_size + 2, nullptr, false);
-    // sort_nodeに左ノードのすべての要素をコピー
-    for (int i=0; i<left_node->count_children(); i++) {
-        sort_node.add(left_node->get_child(i));
-    }
-    // 追加するキーをsort_nodeに追加
-    sort_node.add(child_node);
+    // 左ノードのもっと右側の子ノードは右ノードに移動
+    right_node->add(left_node->pull_last_child());
 
-    // 左ノードをクリア
-    left_node->clear();
+    // 新しい子ノードを左ノードに追加
+    left_node->add(child_node);
 
     // 分割後の左右ノードの保持数を計算
     // 左：ROUNDUP((m+1)/2)個
@@ -153,22 +138,14 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
     // 右：ROUNDDOWN((m+1)/2)個
     int right_hold = floor((m_node_size+1)/2);
     // 右ノードに多く追加される場合はleft_hold += 1
-    std::cout << "m:" << sort_node.count_children() << std::endl;
-    if (left_hold == right_hold && sort_node.count_children() - left_hold > right_hold) {
+    if (left_hold == right_hold && left_node->count_children() + 1 - left_hold > right_hold) {
         left_hold += 1;
     }
 
-    // ノードはキーの追加時にソートされるので、それを利用し前から順に取り出す
-    for (int i=0; i<left_hold; i++) {
-        std::cout << "madd to left: " << i << " left-hold=" << left_hold << std::endl;
-        std::cout << sort_node.get_child(i)->get_min_key_recursive() << std::endl;
-        sort_node.get_child(i)->set_parent(left_node);
-        left_node->add(sort_node.get_child(i));
-    }
-    for (int i=left_hold; i<sort_node.count_children(); i++) {
-        std::cout << sort_node.get_child(i)->get_min_key_recursive() << std::endl;
-        sort_node.get_child(i)->set_parent(right_node);
-        right_node->add(sort_node.get_child(i));
+    // left_hold番目以降の要素を左ノードから右ノードへ移動
+    for (int i=left_hold; i<left_node->count_children(); i++) {
+        left_node->get_child(i)->set_parent(right_node);
+        right_node->add(left_node->pull_child(i));
     }
 
     std::cout << "fin" << std::endl;

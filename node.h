@@ -6,6 +6,8 @@
 #include <limits>
 #include <iomanip>
 
+#define M   5
+
 class Node {
 public:
     // コンストラクタ
@@ -17,6 +19,7 @@ public:
 
     // 要素の削除
     bool del(const int num);
+    bool del(Node* del_node);
 
     // ノードの初期化
     void clear();
@@ -36,8 +39,20 @@ public:
     // キー値の取得
     int get_key(const int num);
 
+    // キー値の取り出し（取得してこのノードからは除去）
+    int pull_key(const int num);
+
+    // 一番右にあるキー値の取り出し
+    int pull_last_key();
+
     // 子ノードの取得
     Node* get_child(const int num);
+
+    // 子ノードを取り出し（取得してこのノードからは除去）
+    Node* pull_child(const int num);
+
+    // 一番右にある子ノードを取り出し
+    Node* pull_last_child();
 
     // 親ノードを取得
     Node* get_parent();
@@ -71,8 +86,8 @@ private:
     bool m_is_leaf;                     // このノードが葉ノードか否か
     bool m_is_empty;                    // このノードが空か否か
     Node* m_parent_node;                // 親ノードへのポインタ
-    std::vector<int> m_keys;            // キー保持用配列
-    std::vector<Node*> m_children;      // 子ノードへのポインタ保持用配列
+    int m_keys[M];            // キー保持用配列
+    Node* m_children[M];      // 子ノードへのポインタ保持用配列
 
     // メンバ関数
     bool m_insert(const int key_to_insert, Node* child_node_to_insert); // キーを配列に挿入

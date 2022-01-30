@@ -1,7 +1,7 @@
 #include "tree.h"
 
 int main() {
-    Tree bp_tree(4);
+    Tree bp_tree(M);
     bp_tree.add(2);
     bp_tree.print_tree();
     bp_tree.add(3);
