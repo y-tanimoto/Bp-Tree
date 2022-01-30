@@ -61,6 +61,9 @@ public:
     // ノードが保持するキーの表示
     void print_keys(int height);
 
+    // 子ノードの解放
+    void clear_recursive();
+
 private:
     // メンバ変数
     int m_size;                         // ノードのサイズ

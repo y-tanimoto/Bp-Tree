@@ -14,6 +14,9 @@ public:
     // 各ノードの表示
     void print_tree();
 
+    // メモリ解放
+    void clear_tree();
+
 private:
     // メンバ変数
     int m_node_size;                // 各ノードのサイズ

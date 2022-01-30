@@ -28,6 +28,7 @@ bool Tree::add(const int key_to_add) {
     // 左ノード、右ノードの用意（左ノードは追加先ノードを再利用）
     Node* left_node = target_node;
     Node* right_node = new Node(m_node_size, nullptr, true);
+    
     // ソート用のノードを生成
     Node sort_node(m_node_size + 2, nullptr, true);
     // sort_nodeに左ノードのすべての要素をコピー
@@ -63,7 +64,7 @@ bool Tree::add(const int key_to_add) {
     right_node->set_right_node(left_node->get_right_node());
 
     // 左ノードに右ノードへのポインタを設定
-    left_node->set_right_node(right_node);
+    //left_node->set_right_node(right_node);
 
     // 親ノードを取得
     Node* parent_node;
@@ -120,7 +121,7 @@ void Tree::print_tree() {
 // 葉以外のノードに子ノードを追加
 bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
     // 親ノードに子ノードを追加可能であれば、追加して完了
-    if (parent_node->is_able_to_add()) {
+    if (parent_node->is_able_to_add_child()) {
         parent_node->add(child_node);
         child_node->set_parent(parent_node);
         return true;
@@ -153,7 +154,7 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
     int right_hold = floor((m_node_size+1)/2);
     // 右ノードに多く追加される場合はleft_hold += 1
     std::cout << "m:" << sort_node.count_children() << std::endl;
-    if (sort_node.count_children() - left_hold > right_hold) {
+    if (left_hold == right_hold && sort_node.count_children() - left_hold > right_hold) {
         left_hold += 1;
     }
 
@@ -191,4 +192,9 @@ bool Tree::m_add_child_node(Node* parent_node, Node* child_node) {
 
     // 親ノードの親ノードに右ノードを登録
     return m_add_child_node(left_parent_node, right_node);
+}
+
+// メモリ解放
+void Tree::clear_tree() {
+    m_root_node->clear_recursive();
 }

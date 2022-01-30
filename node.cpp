@@ -223,7 +223,7 @@ bool Node::is_able_to_add() {
     return true;
 }
 bool Node::is_able_to_add_child() {
-    if (!is_leaf_node() && m_total_keys + 1 > m_size + 1) {
+    if (!is_leaf_node() && m_total_keys + 2 > m_size + 1) {
         return false;
     }
     return true;
@@ -231,8 +231,10 @@ bool Node::is_able_to_add_child() {
 
 // ノードが保持するキーの表示
 void Node::print_keys(int height) {
+    std::cout << "size:" << m_size << " count:" << m_total_keys << " this:" << this << std::endl;
+    std::cout << std::setw(height);
     for (int i=0; i<m_total_keys; i++) {
-        std::cout << std::setw(height) << "[" << m_keys[i] << "]";
+        std::cout << "[" << m_keys[i] << "]";
     }
     std::cout << std::endl;
 
@@ -242,5 +244,18 @@ void Node::print_keys(int height) {
             break;
         }
         m_children[i]->print_keys(height+1);
+    }
+}
+
+// 子ノードの解放
+void Node::clear_recursive() {
+    if (m_is_leaf) {
+        return;         // 葉ノードなら何もしない
+    }
+
+    for (int i=0; i<count_children(); i++) {
+        m_children[i]->clear_recursive();
+        std::cout << m_children[i] << std::endl;
+        //delete m_children[i];
     }
 }

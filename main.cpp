@@ -1,7 +1,19 @@
 #include "tree.h"
 
 int main() {
-    Tree bp_tree(3);
+    Tree bp_tree(4);
+    bp_tree.add(2);
+    bp_tree.print_tree();
+    bp_tree.add(3);
+    bp_tree.print_tree();
+    bp_tree.add(7);
+    bp_tree.print_tree();
+    bp_tree.add(11);
+    bp_tree.print_tree();
+    bp_tree.add(5);
+    bp_tree.print_tree();
+    bp_tree.add(19);
+    bp_tree.print_tree();
     bp_tree.add(13);
     bp_tree.print_tree();
     bp_tree.add(17);
@@ -20,24 +32,15 @@ int main() {
     bp_tree.print_tree();
     bp_tree.add(41);
     bp_tree.print_tree();
-    bp_tree.add(2);
-    bp_tree.print_tree();
-    bp_tree.add(3);
-    bp_tree.print_tree();
-    bp_tree.add(7);
-    bp_tree.print_tree();
-    bp_tree.add(11);
-    bp_tree.print_tree();
-    bp_tree.add(5);
-    bp_tree.print_tree();
-    bp_tree.add(19);
-    bp_tree.print_tree();
 
     bp_tree.add(10);
     bp_tree.print_tree();
 
     bp_tree.add(40);
     bp_tree.print_tree();
+
+    // メモリ解放
+    bp_tree.clear_tree();
 
     return 0;
 }
