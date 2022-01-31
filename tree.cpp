@@ -45,6 +45,9 @@ bool Tree::add(Node* parent_node, const int key_to_add, Node* node_to_add) {
 
 // キーの削除
 bool Tree::del(const int key_to_delete) {
+    std::cout << "---------" << std::endl;
+        std::cout << "delete: " << key_to_delete << std::endl;
+
     // 削除するキーを検索
     Node* node_to_delete = m_search_leaf_node(key_to_delete);
 
@@ -55,6 +58,11 @@ bool Tree::del(const int key_to_delete) {
 
     // 以下、キーが存在する場合
     // キーをそのままノードから除去できるなら、そのまま除去
+    if (node_to_delete->is_able_to_delete()) {
+        node_to_delete->del_key(key_to_delete);
+        return true;
+    }
+
     return true;
 }
 

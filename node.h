@@ -20,6 +20,9 @@ public:
     bool del(const int num);
     bool del(Node* del_node);
 
+    // キーの削除
+    bool del_key(const int key_to_delete);
+
     // ノードの初期化
     void clear();
 
@@ -43,6 +46,9 @@ public:
 
     // キー値が存在するか
     bool has_key(const int key_to_search);
+
+    // キー値の更新
+    bool update_key(Node* child_node_to_update);
 
     // 一番右にあるキー値の取り出し
     int pull_last_key();

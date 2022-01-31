@@ -143,12 +143,32 @@ bool Node::add(int key_to_add, Node* child_node_to_add) {
 // 要素の削除
 bool Node::del(const int num) {
     m_slide_front(num);
+    if (!is_root_node()) {
+        m_parent_node->update_key(this);
+    }
     return true;
 }
 bool Node::del(Node* del_node) {
-    for (int i=0; i<=m_total_keys; i++) {
+    for (int i=0; i<m_total_children; i++) {
         if (m_children[i] == del_node) {
             m_slide_front(i);
+            if (!is_root_node()) {
+                m_parent_node->update_key(this);
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+// キーの削除
+bool Node::del_key(const int key_to_delete) {
+    for (int i=0; i<m_total_keys; i++) {
+        if (m_keys[i] == key_to_delete) {
+            m_slide_front(i);
+            if (!is_root_node()) {
+                m_parent_node->update_key(this);
+            }
             return true;
         }
     }
@@ -203,6 +223,26 @@ int Node::pull_key(const int num) {
 bool Node::has_key(const int key_to_search) {
     for (int i=0; i<m_total_keys; i++) {
         if (m_keys[i] == key_to_search) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// キー値の更新
+bool Node::update_key(Node* child_node_to_update) {
+    for (int i=0; i<m_total_children; i++) {
+        if (m_children[i] == child_node_to_update) {
+            // 一番左の子ノードなら、親ノードのキー値が更新されることになるので親ノードに対し再帰的に呼び出し
+            if (i == 0) {
+                if (is_root_node()) {
+                    return true;
+                }
+                return m_parent_node->update_key(this);
+            }
+
+            // (i-1)番目のキー値を子ノードが持つ部分木の最小値に
+            m_keys[i-1] = child_node_to_update->get_min_key_recursive();
             return true;
         }
     }
@@ -279,7 +319,7 @@ bool Node::is_able_to_delete() {
         return (m_total_keys - 1 >= floor((M+1)/2));
     }
     // それ以外の場合、削除後にキーがROUNDDOWN((M+1)/2)個以上ならOK
-    return (m_total_keys+1 - 1 >= ceil((M+1)/2));
+    return (m_total_children - 1 >= ceil((M+1)/2));
 }
 
 // ノードが保持するキーの表示

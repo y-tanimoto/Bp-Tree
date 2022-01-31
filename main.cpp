@@ -37,6 +37,13 @@ int main() {
     bp_tree.add(40, nullptr);
     bp_tree.print_tree();
 
+    bp_tree.del(37);
+    bp_tree.print_tree();
+    bp_tree.del(7);
+    bp_tree.print_tree();
+    bp_tree.del(2);
+    bp_tree.print_tree();
+
     // キーの検索
     bp_tree.search(23);
     bp_tree.search(24);
