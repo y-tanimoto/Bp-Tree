@@ -18,7 +18,9 @@ public:
 
     // 要素の削除
     bool del(const int num);
-    bool del(Node* del_node);
+
+    // 子ノードの削除
+    bool del_child(Node* del_node);
 
     // キーの削除
     bool del_key(const int key_to_delete);

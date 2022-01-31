@@ -11,7 +11,7 @@ public:
 
     // キーの削除
     bool del(const int key_to_delete);
-    bool del(Node* node_to_delete);
+    bool del(Node* parent_node, const int key_to_delete, Node* node_to_delete);
 
     // キーの探索
     void search(const int key_to_search);
@@ -30,8 +30,8 @@ private:
     // 戻り値は右側ノード（左側ノードは引数に与えられたノードを再利用）
     Node* m_div(Node* left_node, int key_to_add, Node* node_to_add);
 
-    // ノードをマージする
-    void m_marge(Node* target_node);
+    // ノードをnext_nodeにマージする
+    void m_marge(Node* target_node, Node* next_node);
 
     // キーが入る葉ノードを探索
     Node* m_search_leaf_node(const int key_to_search);

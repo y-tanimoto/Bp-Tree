@@ -140,7 +140,7 @@ bool Node::add(int key_to_add, Node* child_node_to_add) {
     return m_insert(key_to_add, child_node_to_add);
 }
 
-// 要素の削除
+// num番目の要素の削除
 bool Node::del(const int num) {
     m_slide_front(num);
     if (!is_root_node()) {
@@ -148,7 +148,9 @@ bool Node::del(const int num) {
     }
     return true;
 }
-bool Node::del(Node* del_node) {
+
+// 子ノードの削除
+bool Node::del_child(Node* del_node) {
     for (int i=0; i<m_total_children; i++) {
         if (m_children[i] == del_node) {
             m_slide_front(i);
@@ -271,8 +273,14 @@ Node* Node::get_right_child(Node* child_node) {
     for (int i=0; i<m_total_children; i++) {
         if (m_children[i] == child_node) {
             // 子ノードが末尾（一番右側）の子ノードであればnullptrを返す
+            // ただし、根ノードでも葉ノードでもない場合は親ノードに隣接ノードを問い合わせる
             if (i == m_total_children - 1) {
-                return nullptr;
+                if (is_leaf_node() || is_root_node()) {
+                    return nullptr;
+                }
+                else {
+                    return m_parent_node->get_right_child(this);
+                }
             }
             return m_children[i+1];
         }
