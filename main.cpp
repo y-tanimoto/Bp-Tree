@@ -41,7 +41,7 @@ int main() {
     bp_tree.print_tree();
     bp_tree.del(7);
     bp_tree.print_tree();
-    bp_tree.del(2);
+    bp_tree.del(10);
     bp_tree.print_tree();
 
     // キーの検索

@@ -306,6 +306,9 @@ int Node::count_keys() {
 
 // ノードが保持する子ノードの数
 int Node::count_children() {
+    if (is_leaf_node()) {
+        return m_total_keys;
+    }
     return m_total_children;
 }
 
@@ -339,10 +342,21 @@ bool Node::is_ok(const int additional_num) {
     }
     // 葉ノードの場合、キーがROUNDDOWN((M+1)/2)個以上ならOK
     if (is_leaf_node()) {
-        return (m_total_keys + additional_num >= floor((M+1)/2) && m_total_keys + additional_num <= m_size);
+        return (m_total_keys + additional_num >= required() && m_total_keys + additional_num <= m_size);
     }
     // それ以外の場合、ROUNDDOWN((M+1)/2)個以上ならOK
-    return (m_total_children + additional_num >= ceil((M+1)/2) && m_total_children + additional_num <= m_size + 1);
+    return (m_total_children + additional_num >= required() && m_total_children + additional_num <= m_size + 1);
+}
+
+// ノードに必要な要素数
+int Node::required() {
+    if (is_root_node()) {
+        return 0;
+    }
+    if (is_leaf_node()) {
+        return floor((M+1)/2);
+    }
+    return ceil((M+1)/2);
 }
 
 // ノードが保持するキーの表示

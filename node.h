@@ -89,6 +89,9 @@ public:
     // ノードの要素数が条件に合致するか
     bool is_ok(const int additional_num);
 
+    // ノードに必要な要素数
+    int required();
+
     // ノードが保持するキーの表示
     void print_keys(int height);
     void print_keys_once(int height);
