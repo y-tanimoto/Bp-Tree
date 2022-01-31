@@ -226,6 +226,30 @@ void Tree::m_marge(Node* target_node) {
     }
 
     // 隣接ノードに追加可能であれば、キーをすべて追加
+    bool able_to_add_all = false;
+    if (target_node->is_leaf_node()) {
+        // target_nodeが葉ノードなら隣接ノードも葉ノード
+        if (next_node->is_ok(target_node->count_keys())) {
+            able_to_add_all = true;
+        }
+    }
+    else {
+        // target_nodeが葉ノードでなければ隣接ノードも葉ノードでない
+        if (next_node->is_ok(target_node->count_children())) {
+            able_to_add_all = true;
+        }
+    }
+    if (able_to_add_all) {
+        // キーをすべて隣接ノードへ移動
+        for (int i=0; i<target_node->count_children()-(target_node->is_leaf_node()); i++) {
+            next_node->add(target_node->get_key(i), target_node->pull_child(i));
+        }
+        // ツリー上からtarget_nodeを除去
+        del(target_node);
+        return;
+    }
+
+    // 隣接ノードに追加できない場合、
 }
 
 // キーが入る葉探索
