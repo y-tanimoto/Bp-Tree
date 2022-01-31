@@ -57,14 +57,18 @@ bool Tree::del(const int key_to_delete) {
     }
 
     // 以下、キーが存在する場合
-    // キーをそのままノードから除去できるなら、そのまま除去
-    if (node_to_delete->is_able_to_delete()) {
-        node_to_delete->del_key(key_to_delete);
+    // ノードから除去
+    node_to_delete->del_key(key_to_delete);
+    // 除去後、要素数が条件に合致するなら完了
+    if (node_to_delete->is_ok(0)) {
         return true;
     }
 
+    // 除去後にノード数が条件に合わない場合は隣接ノードとマージ
+
     return true;
 }
+//bool Tree::del(Node* node_to_delete) {}
 
 // キーの検索と結果の表示
 void Tree::search(const int key_to_search) {
@@ -203,6 +207,25 @@ Node* Tree::m_div(Node* left_node, int key_to_add, Node* node_to_add) {
     }
 
     return right_node;
+}
+
+// ノードをマージする
+void Tree::m_marge(Node* target_node) {
+    // target_nodeが根ノードであれば何もしない
+    if (target_node->is_root_node()) {
+        return;
+    }
+
+    // target_nodeの隣接ノードを取得
+    // target_nodeの親ノードを経由して取得する
+    bool next_is_right_node = true;
+    Node* next_node = target_node->get_parent()->get_right_child(target_node);
+    if (next_node == nullptr) {
+        next_is_right_node = false;
+        next_node = target_node->get_parent()->get_left_child(target_node);
+    }
+
+    // 隣接ノードに追加可能であれば、キーをすべて追加
 }
 
 // キーが入る葉探索

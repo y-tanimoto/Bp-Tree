@@ -59,6 +59,12 @@ public:
     // 子ノードを取り出し（取得してこのノードからは除去）
     Node* pull_child(const int num);
 
+    // 引数の子ノードに対し右側の隣接ノードを取得
+    Node* get_right_child(Node* child_node);
+
+    // 引数の子ノードに対し左側の隣接ノードを取得
+    Node* get_left_child(Node* child_node);
+
     // 一番右にある子ノードを取り出し
     Node* pull_last_child();
 
@@ -80,8 +86,8 @@ public:
     // ノードに要素を追加可能か否か
     bool is_able_to_add();
 
-    // ノードから要素を削除可能か否か
-    bool is_able_to_delete();
+    // ノードの要素数が条件に合致するか
+    bool is_ok(const int additional_num);
 
     // ノードが保持するキーの表示
     void print_keys(int height);

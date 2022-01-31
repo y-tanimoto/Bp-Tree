@@ -30,6 +30,9 @@ private:
     // 戻り値は右側ノード（左側ノードは引数に与えられたノードを再利用）
     Node* m_div(Node* left_node, int key_to_add, Node* node_to_add);
 
+    // ノードをマージする
+    void m_marge(Node* target_node);
+
     // キーが入る葉ノードを探索
     Node* m_search_leaf_node(const int key_to_search);
 };

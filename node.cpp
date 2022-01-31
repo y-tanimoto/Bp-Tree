@@ -266,9 +266,32 @@ Node* Node::pull_child(const int num) {
     return ret;
 }
 
-// 一番右にある子ノードを取り出し
-Node* Node::pull_last_child() {
-    return pull_child(m_total_keys);
+// 引数の子ノードに対し右側の隣接ノードを取得
+Node* Node::get_right_child(Node* child_node) {
+    for (int i=0; i<m_total_children; i++) {
+        if (m_children[i] == child_node) {
+            // 子ノードが末尾（一番右側）の子ノードであればnullptrを返す
+            if (i == m_total_children - 1) {
+                return nullptr;
+            }
+            return m_children[i+1];
+        }
+    }
+    return nullptr;
+}
+
+// 引数の子ノードに対し左側の隣接ノードを取得
+Node* Node::get_left_child(Node* child_node) {
+    for (int i=0; i<m_total_children; i++) {
+        if (m_children[i] == child_node) {
+            // 子ノードが先頭（一番左側）の子ノードであればnullptrを返す
+            if (i == 0) {
+                return nullptr;
+            }
+            return m_children[i-1];
+        }
+    }
+    return nullptr;
 }
 
 // 親ノードを取得
@@ -302,24 +325,24 @@ bool Node::is_root_node() {
 
 // ノードに要素を追加可能か否か
 bool Node::is_able_to_add() {
-    if (m_total_keys + 1 > m_size) {
-        return false;
-    }
-    return true;
+    return is_ok(1);   // 1個だけ追加した場合の結果を返す
 }
 
-// ノードから要素を削除可能か否か
-bool Node::is_able_to_delete() {
-    // 根ノードならOK
+// ノードの要素数が条件に合致するか
+bool Node::is_ok(const int additional_num) {
+    // 根ノードなら上限値を超えなければOK
+    if (is_root_node() && is_leaf_node()) {
+        return (m_total_keys + additional_num <= m_size);
+    }
     if (is_root_node()) {
-        return true;
+        return (m_total_children + additional_num <= m_size + 1);
     }
-    // 葉ノードの場合、削除後にキーがROUNDDOWN((M+1)/2)個以上ならOK
-    if (m_is_leaf) {
-        return (m_total_keys - 1 >= floor((M+1)/2));
+    // 葉ノードの場合、キーがROUNDDOWN((M+1)/2)個以上ならOK
+    if (is_leaf_node()) {
+        return (m_total_keys + additional_num >= floor((M+1)/2) && m_total_keys + additional_num <= m_size);
     }
-    // それ以外の場合、削除後にキーがROUNDDOWN((M+1)/2)個以上ならOK
-    return (m_total_children - 1 >= ceil((M+1)/2));
+    // それ以外の場合、ROUNDDOWN((M+1)/2)個以上ならOK
+    return (m_total_children + additional_num >= ceil((M+1)/2) && m_total_children + additional_num <= m_size + 1);
 }
 
 // ノードが保持するキーの表示
