@@ -92,7 +92,7 @@ void Node::m_slide_front(const int num) {
     // 葉以外のノードの場合
     else {
         for (int j=num; j<=m_total_keys-1; j++) {
-            m_keys[j-1] = m_keys[j];
+            if (j >= 1) m_keys[j-1] = m_keys[j];
             m_children[j] = m_children[j+1];
         }
         m_total_keys -= 1;
@@ -143,9 +143,7 @@ bool Node::add(int key_to_add, Node* child_node_to_add) {
 // num番目の要素の削除
 bool Node::del(const int num) {
     m_slide_front(num);
-    if (!is_root_node()) {
-        m_parent_node->update_key(this);
-    }
+    update_keys();
     return true;
 }
 
@@ -154,9 +152,7 @@ bool Node::del_child(Node* del_node) {
     for (int i=0; i<m_total_children; i++) {
         if (m_children[i] == del_node) {
             m_slide_front(i);
-            if (!is_root_node()) {
-                m_parent_node->update_key(this);
-            }
+            update_keys();
             return true;
         }
     }
@@ -168,9 +164,7 @@ bool Node::del_key(const int key_to_delete) {
     for (int i=0; i<m_total_keys; i++) {
         if (m_keys[i] == key_to_delete) {
             m_slide_front(i);
-            if (!is_root_node()) {
-                m_parent_node->update_key(this);
-            }
+            update_keys();
             return true;
         }
     }
@@ -232,23 +226,26 @@ bool Node::has_key(const int key_to_search) {
 }
 
 // キー値の更新
-bool Node::update_key(Node* child_node_to_update) {
-    for (int i=0; i<m_total_children; i++) {
-        if (m_children[i] == child_node_to_update) {
-            // 一番左の子ノードなら、親ノードのキー値が更新されることになるので親ノードに対し再帰的に呼び出し
-            if (i == 0) {
-                if (is_root_node()) {
-                    return true;
-                }
-                return m_parent_node->update_key(this);
-            }
-
-            // (i-1)番目のキー値を子ノードが持つ部分木の最小値に
-            m_keys[i-1] = child_node_to_update->get_min_key_recursive();
-            return true;
+// ボトムアップで再帰的に実行
+void Node::update_keys() {
+    // 葉ノードの場合は何もしない
+    if (is_leaf_node()) {
+        // 親ノードに対しても実行
+        if (!is_root_node()) {
+            m_parent_node->update_keys();
         }
+        return;
     }
-    return false;
+
+    for (int i=1; i<m_total_children; i++) {
+        // (i-1)番目のキー値を子ノードが持つ部分木の最小値に
+        m_keys[i-1] = m_children[i]->get_min_key_recursive();
+    }
+    
+    // 親ノードに対しても実行
+    if (!is_root_node()) {
+        m_parent_node->update_keys();
+    }
 }
 
 // 一番右にあるキー値の取り出し
@@ -273,9 +270,9 @@ Node* Node::get_right_child(Node* child_node) {
     for (int i=0; i<m_total_children; i++) {
         if (m_children[i] == child_node) {
             // 子ノードが末尾（一番右側）の子ノードであればnullptrを返す
-            // ただし、根ノードでも葉ノードでもない場合は親ノードに隣接ノードを問い合わせる
+            // ただし、根ノードでない場合は親ノードに隣接ノードを問い合わせる
             if (i == m_total_children - 1) {
-                if (is_leaf_node() || is_root_node()) {
+                if (is_root_node()) {
                     return nullptr;
                 }
                 else {

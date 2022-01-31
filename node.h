@@ -50,7 +50,7 @@ public:
     bool has_key(const int key_to_search);
 
     // キー値の更新
-    bool update_key(Node* child_node_to_update);
+    void update_keys();
 
     // 一番右にあるキー値の取り出し
     int pull_last_key();
