@@ -43,7 +43,22 @@ bool Tree::add(Node* parent_node, const int key_to_add, Node* node_to_add) {
     return add(left_node->get_parent(), right_node->get_min_key_recursive(), right_node);
 }
 
-// キーの探索
+// キーの削除
+bool Tree::del(const int key_to_delete) {
+    // 削除するキーを検索
+    Node* node_to_delete = m_search_leaf_node(key_to_delete);
+
+    // キーがツリー上に存在しなければfalse
+    if (!node_to_delete->has_key(key_to_delete)) {
+        return false;
+    }
+
+    // 以下、キーが存在する場合
+    // キーをそのままノードから除去できるなら、そのまま除去
+    return true;
+}
+
+// キーの検索と結果の表示
 void Tree::search(const int key_to_search) {
     std::cout << std::endl << "----------------------" << std::endl << "search key " << key_to_search << std::endl;
 

@@ -41,6 +41,9 @@ public:
     // キー値の取り出し（取得してこのノードからは除去）
     int pull_key(const int num);
 
+    // キー値が存在するか
+    bool has_key(const int key_to_search);
+
     // 一番右にあるキー値の取り出し
     int pull_last_key();
 
@@ -71,6 +74,9 @@ public:
     // ノードに要素を追加可能か否か
     bool is_able_to_add();
 
+    // ノードから要素を削除可能か否か
+    bool is_able_to_delete();
+
     // ノードが保持するキーの表示
     void print_keys(int height);
     void print_keys_once(int height);
@@ -82,6 +88,7 @@ private:
     // メンバ変数
     int m_size;                         // ノードのサイズ
     int m_total_keys;                   // ノードが持つキーの数
+    int m_total_children;               // ノードが持つ子ノードの数
     bool m_is_leaf;                     // このノードが葉ノードか否か
     bool m_is_empty;                    // このノードが空か否か
     Node* m_parent_node;                // 親ノードへのポインタ

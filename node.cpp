@@ -18,6 +18,7 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
                     m_children[i+1] = m_children[i];
                     m_children[i] = child_node_to_insert;
                     m_total_keys += 1;
+                    m_total_children += 1;
                     return true;
                 }
             }
@@ -26,6 +27,7 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
             m_keys[i] = key_to_insert;                      // i番目にキーを登録
             m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
             m_total_keys += 1;
+            m_total_children += 1;
             return true;
         }
         right = m_keys[i];
@@ -58,6 +60,7 @@ void Node::m_slide_back(const int num) {
             m_children[j] = m_children[j-1];
         }
         m_total_keys += 1;
+        m_total_children += 1;
     }
     // 葉以外のノードの場合
     else {
@@ -66,6 +69,7 @@ void Node::m_slide_back(const int num) {
             m_children[j] = m_children[j-1];
         }
         m_total_keys += 1;
+        m_total_children += 1;
     }
 }
 
@@ -79,6 +83,7 @@ void Node::m_slide_front(const int num) {
         }
         m_children[m_total_keys] = m_children[m_total_keys+1];
         m_total_keys -= 1;
+        m_total_children -= 1;
 
         // 最後の要素は削除
         m_keys[m_total_keys] = NAN;
@@ -91,6 +96,7 @@ void Node::m_slide_front(const int num) {
             m_children[j] = m_children[j+1];
         }
         m_total_keys -= 1;
+        m_total_children -= 1;
 
         // 最後の要素は削除
         m_keys[m_total_keys] = NAN;
@@ -126,6 +132,7 @@ bool Node::add(int key_to_add, Node* child_node_to_add) {
         m_children[0] = child_node_to_add;
         m_is_empty = false;
         m_total_keys = 0;
+        m_total_children = 1;
         return true;
     }
     m_is_empty = false;
@@ -192,6 +199,16 @@ int Node::pull_key(const int num) {
     return ret;
 }
 
+// キー値が存在するか
+bool Node::has_key(const int key_to_search) {
+    for (int i=0; i<m_total_keys; i++) {
+        if (m_keys[i] == key_to_search) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // 一番右にあるキー値の取り出し
 int Node::pull_last_key() {
     return pull_key(m_total_keys-1);
@@ -226,10 +243,7 @@ int Node::count_keys() {
 
 // ノードが保持する子ノードの数
 int Node::count_children() {
-    if (m_is_empty) {
-        return 0;
-    }
-    return m_total_keys + 1;
+    return m_total_children;
 }
 
 // このノードが葉ノードか
@@ -252,6 +266,20 @@ bool Node::is_able_to_add() {
         return false;
     }
     return true;
+}
+
+// ノードから要素を削除可能か否か
+bool Node::is_able_to_delete() {
+    // 根ノードならOK
+    if (is_root_node()) {
+        return true;
+    }
+    // 葉ノードの場合、削除後にキーがROUNDDOWN((M+1)/2)個以上ならOK
+    if (m_is_leaf) {
+        return (m_total_keys - 1 >= floor((M+1)/2));
+    }
+    // それ以外の場合、削除後にキーがROUNDDOWN((M+1)/2)個以上ならOK
+    return (m_total_keys+1 - 1 >= ceil((M+1)/2));
 }
 
 // ノードが保持するキーの表示

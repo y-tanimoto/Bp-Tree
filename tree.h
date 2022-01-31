@@ -9,6 +9,10 @@ public:
     bool add(const int key_to_add, Node* node_to_add);
     bool add(Node* parent_node, const int key_to_add, Node* node_to_add);
 
+    // キーの削除
+    bool del(const int key_to_delete);
+    bool del(Node* node_to_delete);
+
     // キーの探索
     void search(const int key_to_search);
 
