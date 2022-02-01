@@ -79,12 +79,29 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
     // 要素数が条件に合致しないなら要素の移動やマージを行う
 
     // parent_nodeの隣接ノードを取得
-    // parent_nodeの親ノードを経由して取得する
+    Node* next_node;
     bool next_is_right_node = true;
-    Node* next_node = parent_node->get_parent()->get_right_child(parent_node);
-    if (next_node == nullptr) {                     // 右側の隣接ノードが存在しない場合は左側の隣接ノードから
+    // parent_nodeの部分木の最大値を持つ葉ノードから、右側の隣接ノードを取得
+    Node* rightmost_leaf_node_next = m_search_leaf_node(parent_node->get_max_key_recursive())->get_right_node();
+
+    // 右側の隣接ノードが取得できた場合、右側の隣接ノードと要素の移動やマージを行う
+    if (rightmost_leaf_node_next != nullptr) {
+        // 葉ノードの右側の隣接ノードから、parent_nodeと同じ高さの親ノードを取得
+        next_node = rightmost_leaf_node_next;
+        while (next_node->get_height() != parent_node->get_height()) {
+            next_node = next_node->get_parent();
+        }
+    }
+    // 右側の隣接ノードが取得できた場合、左側の隣接ノードと要素の移動やマージを行う
+    else {
+        // parent_nodeの部分木の最小値-1のキーが入り得るノードが、parent_nodeの左隣の部分木のうち最も右側の葉ノード
+        Node* leftmost_leaf_node_prev = m_search_leaf_node(parent_node->get_min_key_recursive() - 1);
+        next_node = leftmost_leaf_node_prev;
         next_is_right_node = false;
-        next_node = parent_node->get_parent()->get_left_child(parent_node);
+    }
+    // 葉ノードの右側（あるいは左側）の隣接ノードから、parent_nodeと同じ高さの親ノードを取得
+    while (next_node->get_height() != parent_node->get_height()) {
+        next_node = next_node->get_parent();
     }
 
     // 移動する個数 = 足りない子ノードの個数
@@ -133,6 +150,14 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
     }
 
     // 隣接ノードから移動できない場合、マージする
+    // 葉ノードの場合、parent_nodeの左隣のノードを右側のノードと隣接ノードとしてつなぐ
+    if (parent_node->is_leaf_node() && !parent_node->is_root_node()) {
+        Node* left_node = m_search_leaf_node(parent_node->get_min_key_recursive() - 1);
+        Node* right_node = parent_node->get_right_node();
+        left_node->set_right_node(right_node);
+    }
+
+    // マージ
     if (parent_node->is_leaf_node()) {
         for (int i=0; i<parent_node->count_keys(); i++) {
             next_node->add(parent_node->pull_key(0), nullptr);
@@ -287,27 +312,11 @@ Node* Tree::m_div(Node* left_node, int key_to_add, Node* node_to_add) {
     return right_node;
 }
 
-// ノードをnext_nodeにマージする
-void Tree::m_marge(Node* target_node, Node* next_node) {
-    if (target_node->is_leaf_node()) {
-        for (int i=0; i<target_node->count_keys(); i++) {
-            next_node->add(target_node->pull_key(0), nullptr);
-        }
-    }
-    else {
-        for (int i=0; i<target_node->count_children(); i++) {
-            next_node->add(target_node->get_key(0), target_node->pull_child(0));
-        }
-    }
-
-    // target_nodeの親ノードからtarget_nodeを削除
-
-}
-
-// キーが入る葉探索
+// キーが入る葉ノードを探索
 Node* Tree::m_search_leaf_node(const int key_to_search) {
     // ルートノードから順に探索
     Node* current_node = m_root_node;
+    Node* before_current_node;
     
     // 葉ノードにたどり着くまで探索
     int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に

@@ -54,8 +54,7 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
 void Node::m_slide_back(const int num) {
     // 葉ノードの場合
     if (is_leaf_node()) {
-        m_children[m_total_keys+1] = m_children[m_total_keys];  // m_childrenのみm_keysより1要素多い
-        for (int j=m_total_keys; j>=num+1; j--) {
+        for (int j=M-1; j>=num+1; j--) {
             m_keys[j] = m_keys[j-1];
             m_children[j] = m_children[j-1];
         }
@@ -77,17 +76,17 @@ void Node::m_slide_back(const int num) {
 void Node::m_slide_front(const int num) {
     // 葉のノードの場合
     if (is_leaf_node()) {
-        for (int j=num; j<=m_total_keys-1; j++) {
+        for (int j=num; j<=m_total_keys-2; j++) {
             m_keys[j] = m_keys[j+1];
             m_children[j] = m_children[j+1];
         }
-        m_children[m_total_keys] = m_children[m_total_keys+1];
-        m_total_keys -= 1;
-        m_total_children -= 1;
 
         // 最後の要素は削除
-        m_keys[m_total_keys] = NAN;
-        m_children[m_total_keys] = nullptr;
+        m_keys[m_total_keys-1] = NAN;
+        m_children[m_total_keys-1] = nullptr;
+
+        m_total_keys -= 1;
+        m_total_children -= 1;
     }
     // 葉以外のノードの場合
     else {
@@ -184,15 +183,18 @@ void Node::set_parent(Node* parent) {
 
 // 隣接ノードの設定
 void Node::set_right_node(Node* right_node) {
-    m_children[m_size] = right_node;
+    m_children[M] = right_node;
 }
 
 // 隣接ノードの設定
 Node* Node::get_right_node() {
-    return m_children[m_size];
+    if (!is_leaf_node()) {
+        return nullptr;
+    }
+    return m_children[M];
 }
 
-// 最小値の取得
+// 部分木の最小値の取得
 int Node::get_min_key_recursive() {
     // 葉ノードなら、最小のキー値を返す
     if (m_is_leaf) {
@@ -201,6 +203,25 @@ int Node::get_min_key_recursive() {
 
     // 葉ノードでなければ、一番左の子ノードで再帰的に呼び出し
     return m_children[0]->get_min_key_recursive();
+}
+
+// 部分木の最大値の取得
+int Node::get_max_key_recursive() {
+    // 葉ノードなら、最大のキー値を返す
+    if (m_is_leaf) {
+        return m_keys[m_total_keys-1];
+    }
+
+    // 葉ノードでなければ、一番右の子ノードで再帰的に呼び出し
+    return m_children[m_total_children-1]->get_max_key_recursive();
+}
+
+// ノードの高さの取得
+int Node::get_height() {
+    if (is_root_node()) {
+        return 0;
+    }
+    return m_parent_node->get_height() + 1;
 }
 
 // キー値の取得
@@ -263,40 +284,6 @@ Node* Node::pull_child(const int num) {
     Node* ret = get_child(num);
     del(num);
     return ret;
-}
-
-// 引数の子ノードに対し右側の隣接ノードを取得
-Node* Node::get_right_child(Node* child_node) {
-    for (int i=0; i<m_total_children; i++) {
-        if (m_children[i] == child_node) {
-            // 子ノードが末尾（一番右側）の子ノードであればnullptrを返す
-            // ただし、根ノードでない場合は親ノードに隣接ノードを問い合わせる
-            if (i == m_total_children - 1) {
-                if (is_root_node()) {
-                    return nullptr;
-                }
-                else {
-                    return m_parent_node->get_right_child(this);
-                }
-            }
-            return m_children[i+1];
-        }
-    }
-    return nullptr;
-}
-
-// 引数の子ノードに対し左側の隣接ノードを取得
-Node* Node::get_left_child(Node* child_node) {
-    for (int i=0; i<m_total_children; i++) {
-        if (m_children[i] == child_node) {
-            // 子ノードが先頭（一番左側）の子ノードであればnullptrを返す
-            if (i == 0) {
-                return nullptr;
-            }
-            return m_children[i-1];
-        }
-    }
-    return nullptr;
 }
 
 // 親ノードを取得

@@ -37,8 +37,14 @@ public:
     // 隣接ノードの取得
     Node* get_right_node();
 
-    // 最小値の取得
+    // 部分木の最小値の取得
     int get_min_key_recursive();
+
+    // 部分木の最大値の取得
+    int get_max_key_recursive();
+
+    // ノードの高さの取得
+    int get_height();
 
     // キー値の取得
     int get_key(const int num);
@@ -60,12 +66,6 @@ public:
 
     // 子ノードを取り出し（取得してこのノードからは除去）
     Node* pull_child(const int num);
-
-    // 引数の子ノードに対し右側の隣接ノードを取得
-    Node* get_right_child(Node* child_node);
-
-    // 引数の子ノードに対し左側の隣接ノードを取得
-    Node* get_left_child(Node* child_node);
 
     // 一番右にある子ノードを取り出し
     Node* pull_last_child();
