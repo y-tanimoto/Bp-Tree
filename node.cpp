@@ -13,7 +13,6 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
         if (child_node_to_insert->get_max_key_recursive() < get_min_key_recursive()) {
             m_slide_back(0);
             m_children[0] = child_node_to_insert;
-            std::cout << "add at first" << std::endl;
             update_keys();
             return true;
         }
@@ -131,7 +130,6 @@ Node::Node(const int size, Node* parent, bool is_leaf) {
 
 // ノードに要素を追加
 bool Node::add(int key_to_add, Node* child_node_to_add) {
-    std::cout << "node add" << std::endl;
     // 追加不可能ならfalse
     if (!is_able_to_add()) {
         return false;
@@ -276,13 +274,11 @@ void Node::update_keys() {
 
     for (int i=1; i<m_total_children; i++) {
         // (i-1)番目のキー値を子ノードが持つ部分木の最小値に
-        std::cout << "  update c:" << m_children[i] << " = " << m_children[i]->get_min_key_recursive() << std::endl;
         m_keys[i-1] = m_children[i]->get_min_key_recursive();
     }
     
     // 親ノードに対しても実行
     if (!is_root_node()) {
-        std::cout << "parent update: " << m_parent_node << std::endl;
         m_parent_node->update_keys();
     }
 }
@@ -343,10 +339,11 @@ bool Node::is_able_to_add() {
 
 // ノードの要素数が条件に合致するか
 bool Node::is_ok(const int additional_num) {
-    // 根ノードなら上限値を超えなければOK
+    // 根ノードかつ葉ノードなら上限値を超えなければOK
     if (is_root_node() && is_leaf_node()) {
         return (m_total_keys + additional_num <= m_size);
     }
+    // 根ノードなら上限値を超えなければOK
     if (is_root_node()) {
         return (m_total_children + additional_num <= m_size + 1);
     }
@@ -375,7 +372,6 @@ void Node::print_keys(int height) {
     for (int i=0; i<m_total_keys; i++) {
         std::cout << "[" << m_keys[i] << "]";
     }
-    std::cout << " " << this << " ";
     std::cout << std::endl;
 
     // 子ノードがあれば子ノードでも表示
