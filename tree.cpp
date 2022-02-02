@@ -77,7 +77,7 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
     }
 
     // 要素数が条件に合致しないなら要素の移動やマージを行う
-
+    std::cout << "A" << std::endl;
     // parent_nodeの隣接ノードを取得
     Node* next_node;
     bool next_is_right_node = true;
@@ -112,7 +112,7 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
     else {
         transfer_nodes = parent_node->required() - parent_node->count_children();
     }
-
+std::cout << "B" << std::endl;
     // 隣接ノードからparent_nodeへ移動
     // 隣接ノードからtransfer_nodes個除去しても条件を満たすなら、隣接ノードから移動
     if (next_node->is_ok(-transfer_nodes)) {
@@ -148,7 +148,7 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
         }
         return true;
     }
-
+std::cout << "C" << std::endl;
     // 隣接ノードから移動できない場合、マージする
     // 葉ノードの場合、parent_nodeの左隣のノードを右側のノードと隣接ノードとしてつなぐ
     if (parent_node->is_leaf_node() && !parent_node->is_root_node()) {
@@ -156,6 +156,8 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
         Node* right_node = parent_node->get_right_node();
         left_node->set_right_node(right_node);
     }
+std::cout << "D" << std::endl;
+std::cout << "parent: " << parent_node << " next: " << next_node << std::endl;
 
     // マージ
     if (parent_node->is_leaf_node()) {
@@ -165,10 +167,12 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
     }
     else {
         for (int i=0; i<parent_node->count_children(); i++) {
+            std::cout << "append " << parent_node->get_key(0) << std::endl;
+            std::cout << parent_node->get_child(0)->get_min_key_recursive() << std::endl;
             next_node->add(parent_node->get_key(0), parent_node->pull_child(0));
         }
     }
-
+std::cout << "E" << std::endl;
     // parent_nodeの親ノードからparent_nodeを削除
     return del(parent_node->get_parent(), 0, parent_node);
 }

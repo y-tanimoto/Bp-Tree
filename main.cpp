@@ -53,6 +53,27 @@ int main() {
     bp_tree.print_tree();
     bp_tree.del(5);
     bp_tree.print_tree();
+    
+    bp_tree.del(11);
+    bp_tree.print_tree();
+    bp_tree.del(11);
+    bp_tree.print_tree();
+    bp_tree.del(13);
+    bp_tree.print_tree();
+    bp_tree.del(17);
+    bp_tree.print_tree();
+    bp_tree.del(37);
+    bp_tree.print_tree();
+    bp_tree.del(41);
+    bp_tree.print_tree();
+    bp_tree.del(40);
+    bp_tree.print_tree();
+    bp_tree.del(55);
+    bp_tree.print_tree();
+    bp_tree.del(43);
+    bp_tree.print_tree();
+    bp_tree.del(47);
+    bp_tree.print_tree();
 
     // キーの検索
     bp_tree.search(23);

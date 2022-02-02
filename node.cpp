@@ -8,6 +8,17 @@ bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
         offset = 0;
     }
 
+    // 追加するノードのもつ部分木の最大値 < このノードの持つ部分木の最小値なら、一番前に挿入
+    if (child_node_to_insert != nullptr) {
+        if (child_node_to_insert->get_max_key_recursive() < get_min_key_recursive()) {
+            m_slide_back(0);
+            m_children[0] = child_node_to_insert;
+            std::cout << "add at first" << std::endl;
+            update_keys();
+            return true;
+        }
+    }
+
     int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に
     int right;
     for(int i=0; i<=m_total_keys; i++) {
@@ -63,9 +74,11 @@ void Node::m_slide_back(const int num) {
     }
     // 葉以外のノードの場合
     else {
-        for (int j=m_total_keys; j>=num+1; j--) {
-            m_keys[j-1] = m_keys[j];
-            m_children[j] = m_children[j-1];
+        for (int j=m_total_keys; j>=num; j--) {
+            if (j > num) {
+                m_keys[j] = m_keys[j-1];
+            }
+            m_children[j+1] = m_children[j];
         }
         m_total_keys += 1;
         m_total_children += 1;
@@ -94,12 +107,14 @@ void Node::m_slide_front(const int num) {
             if (j >= 1) m_keys[j-1] = m_keys[j];
             m_children[j] = m_children[j+1];
         }
-        m_total_keys -= 1;
+        if (m_total_keys > 0) {
+            m_total_keys -= 1;
+        }
         m_total_children -= 1;
 
         // 最後の要素は削除
         m_keys[m_total_keys] = NAN;
-        m_children[m_total_keys+1] = nullptr;
+        m_children[m_total_children] = nullptr;
     }
 }
 
@@ -116,6 +131,7 @@ Node::Node(const int size, Node* parent, bool is_leaf) {
 
 // ノードに要素を追加
 bool Node::add(int key_to_add, Node* child_node_to_add) {
+    std::cout << "node add" << std::endl;
     // 追加不可能ならfalse
     if (!is_able_to_add()) {
         return false;
@@ -260,11 +276,13 @@ void Node::update_keys() {
 
     for (int i=1; i<m_total_children; i++) {
         // (i-1)番目のキー値を子ノードが持つ部分木の最小値に
+        std::cout << "  update c:" << m_children[i] << " = " << m_children[i]->get_min_key_recursive() << std::endl;
         m_keys[i-1] = m_children[i]->get_min_key_recursive();
     }
     
     // 親ノードに対しても実行
     if (!is_root_node()) {
+        std::cout << "parent update: " << m_parent_node << std::endl;
         m_parent_node->update_keys();
     }
 }
@@ -357,6 +375,7 @@ void Node::print_keys(int height) {
     for (int i=0; i<m_total_keys; i++) {
         std::cout << "[" << m_keys[i] << "]";
     }
+    std::cout << " " << this << " ";
     std::cout << std::endl;
 
     // 子ノードがあれば子ノードでも表示
