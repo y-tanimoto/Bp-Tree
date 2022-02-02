@@ -53,7 +53,6 @@ int main() {
     bp_tree.print_tree();
     bp_tree.del(5);
     bp_tree.print_tree();
-
     bp_tree.del(11);
     bp_tree.print_tree();
     bp_tree.del(11);

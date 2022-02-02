@@ -4,7 +4,7 @@
 // ノードのサイズを設定し、最初の根ノードを生成
 Tree::Tree() {
     // 最初のノード（根ノードかつ葉ノード）を生成
-    m_root_node = new Node(M, nullptr, true);
+    m_root_node = new Node(nullptr, true);
 }
 
 // 葉ノードへのキーの追加
@@ -32,7 +32,7 @@ bool Tree::add(Node* parent_node, const int key_to_add, Node* node_to_add) {
 
     // 左ノードが根ノードであれば、新たに根ノードを生成
     if (left_node->is_root_node()) {
-        Node* new_root_node = new Node(M, nullptr, false);
+        Node* new_root_node = new Node(nullptr, false);
         new_root_node->add(0, left_node);
         new_root_node->add(right_node->get_min_key_recursive(), right_node);
         m_root_node = new_root_node;
@@ -218,7 +218,7 @@ void Tree::clear_tree() {
 // 戻り値は右側ノード（左側ノードは引数に与えられたノードを再利用）
 Node* Tree::m_div(Node* left_node, int key_to_add, Node* node_to_add) {
     // 右ノードの生成
-    Node* right_node = new Node(M, nullptr, left_node->is_leaf_node());
+    Node* right_node = new Node(nullptr, left_node->is_leaf_node());
 
     // 左ノードの保持数
     int left_hold = ceil((double)(M+1)/2);

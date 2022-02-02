@@ -11,7 +11,7 @@
 class Node {
 public:
     // コンストラクタ
-    Node(const int size, Node* parent, bool is_leaf);
+    Node(Node* parent, bool is_leaf);
 
     // 要素の追加
     bool add(int key_to_add, Node* child_node_to_add);
@@ -94,7 +94,6 @@ public:
 
 private:
     // メンバ変数
-    int m_size;                         // ノードのサイズ
     int m_total_keys;                   // ノードが持つキーの数
     int m_total_children;               // ノードが持つ子ノードの数
     bool m_is_leaf;                     // このノードが葉ノードか否か

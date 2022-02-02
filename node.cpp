@@ -1,125 +1,7 @@
 #include "node.h"
 
-// キーの挿入
-bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
-    // 葉ノードでなければ、子ノードはm_childrenの(i+1)番目に格納する
-    int offset = 1;
-    if (is_leaf_node()) {
-        offset = 0;
-    }
-
-    // 追加するノードのもつ部分木の最大値 < このノードの持つ部分木の最小値なら、一番前に挿入
-    if (child_node_to_insert != nullptr) {
-        if (child_node_to_insert->get_max_key_recursive() < get_min_key_recursive()) {
-            m_slide_back(0);
-            m_children[0] = child_node_to_insert;
-            update_keys();
-            return true;
-        }
-    }
-
-    int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に
-    int right;
-    for(int i=0; i<=m_total_keys; i++) {
-        if (i == m_total_keys) {
-            if (!m_is_leaf && m_children[i] != nullptr) {
-                if (key_to_insert < m_children[i]->get_min_key_recursive()) {
-                    m_keys[i] = m_children[i]->get_min_key_recursive();
-                    m_children[i+1] = m_children[i];
-                    m_children[i] = child_node_to_insert;
-                    m_total_keys += 1;
-                    m_total_children += 1;
-                    return true;
-                }
-            }
-
-            // 一番うしろの要素+1番目まで到達した場合はそこに追加
-            m_keys[i] = key_to_insert;                      // i番目にキーを登録
-            m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
-            m_total_keys += 1;
-            m_total_children += 1;
-            return true;
-        }
-        right = m_keys[i];
-
-        // 左の値 == key_to_insertなら、既にキー値が存在するのでfalse
-        if (left == key_to_insert) {
-            return false;
-        }
-
-        // 左の値 < key_to_insert < 右の値なら、そこに挿入
-        if (left < key_to_insert && key_to_insert < right) {
-            m_slide_back(i);                                // i番目から後ろの要素を後ろにずらす
-            m_keys[i] = key_to_insert;                      // i番目にキーを登録
-            m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
-            return true;
-        }
-
-        left = right;
-    }
-    return false;
-}
-
-// num番目から後ろの要素を1つずつ後ろへずらす
-void Node::m_slide_back(const int num) {
-    // 葉ノードの場合
-    if (is_leaf_node()) {
-        for (int j=M-1; j>=num+1; j--) {
-            m_keys[j] = m_keys[j-1];
-            m_children[j] = m_children[j-1];
-        }
-        m_total_keys += 1;
-        m_total_children += 1;
-    }
-    // 葉以外のノードの場合
-    else {
-        for (int j=m_total_keys; j>=num; j--) {
-            if (j > num) {
-                m_keys[j] = m_keys[j-1];
-            }
-            m_children[j+1] = m_children[j];
-        }
-        m_total_keys += 1;
-        m_total_children += 1;
-    }
-}
-
-// num番目から後ろの要素を1つずつ前へずらす
-void Node::m_slide_front(const int num) {
-    // 葉のノードの場合
-    if (is_leaf_node()) {
-        for (int j=num; j<=m_total_keys-2; j++) {
-            m_keys[j] = m_keys[j+1];
-            m_children[j] = m_children[j+1];
-        }
-
-        // 最後の要素は削除
-        m_keys[m_total_keys-1] = NAN;
-        m_children[m_total_keys-1] = nullptr;
-
-        m_total_keys -= 1;
-        m_total_children -= 1;
-    }
-    // 葉以外のノードの場合
-    else {
-        for (int j=num; j<=m_total_keys-1; j++) {
-            if (j >= 1) m_keys[j-1] = m_keys[j];
-            m_children[j] = m_children[j+1];
-        }
-        if (m_total_keys > 0) {
-            m_total_keys -= 1;
-        }
-        m_total_children -= 1;
-
-        // 最後の要素は削除
-        m_keys[m_total_keys] = NAN;
-        m_children[m_total_children] = nullptr;
-    }
-}
-
 // 葉ノード用コンストラクタ
-Node::Node(const int size, Node* parent, bool is_leaf) {
-    m_size = size;
+Node::Node(Node* parent, bool is_leaf) {
     m_parent_node = parent;
     m_is_leaf = is_leaf;
     m_is_empty = true;
@@ -328,18 +210,18 @@ bool Node::is_able_to_add() {
 bool Node::is_ok(const int additional_num) {
     // 根ノードかつ葉ノードなら上限値を超えなければOK
     if (is_root_node() && is_leaf_node()) {
-        return (m_total_keys + additional_num <= m_size);
+        return (m_total_keys + additional_num <= M);
     }
     // 根ノードなら上限値を超えなければOK
     if (is_root_node()) {
-        return (m_total_children + additional_num <= m_size + 1);
+        return (m_total_children + additional_num <= M + 1);
     }
     // 葉ノードの場合、キーがROUNDDOWN((M+1)/2)個以上ならOK
     if (is_leaf_node()) {
-        return (m_total_keys + additional_num >= required() && m_total_keys + additional_num <= m_size);
+        return (m_total_keys + additional_num >= required() && m_total_keys + additional_num <= M);
     }
     // それ以外の場合、ROUNDDOWN((M+1)/2)個以上ならOK
-    return (m_total_children + additional_num >= required() && m_total_children + additional_num <= m_size + 1);
+    return (m_total_children + additional_num >= required() && m_total_children + additional_num <= M + 1);
 }
 
 // ノードに必要な要素数
@@ -386,5 +268,122 @@ void Node::clear_recursive() {
     for (int i=0; i<count_children(); i++) {
         m_children[i]->clear_recursive();
         delete m_children[i];
+    }
+}
+
+// キーの挿入
+bool Node::m_insert(const int key_to_insert, Node* child_node_to_insert) {
+    // 葉ノードでなければ、子ノードはm_childrenの(i+1)番目に格納する
+    int offset = 1;
+    if (is_leaf_node()) {
+        offset = 0;
+    }
+
+    // 追加するノードのもつ部分木の最大値 < このノードの持つ部分木の最小値なら、一番前に挿入
+    if (child_node_to_insert != nullptr) {
+        if (child_node_to_insert->get_max_key_recursive() < get_min_key_recursive()) {
+            m_slide_back(0);
+            m_children[0] = child_node_to_insert;
+            update_keys();
+            return true;
+        }
+    }
+
+    int left = std::numeric_limits<int>::min();   // 左側の値の初期値はintの最小値に
+    int right;
+    for(int i=0; i<=m_total_keys; i++) {
+        if (i == m_total_keys) {
+            if (!m_is_leaf && m_children[i] != nullptr) {
+                if (key_to_insert < m_children[i]->get_min_key_recursive()) {
+                    m_keys[i] = m_children[i]->get_min_key_recursive();
+                    m_children[i+1] = m_children[i];
+                    m_children[i] = child_node_to_insert;
+                    m_total_keys += 1;
+                    m_total_children += 1;
+                    return true;
+                }
+            }
+
+            // 一番うしろの要素+1番目まで到達した場合はそこに追加
+            m_keys[i] = key_to_insert;                      // i番目にキーを登録
+            m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
+            m_total_keys += 1;
+            m_total_children += 1;
+            return true;
+        }
+        right = m_keys[i];
+
+        // 左の値 == key_to_insertなら、既にキー値が存在するのでfalse
+        if (left == key_to_insert) {
+            return false;
+        }
+
+        // 左の値 < key_to_insert < 右の値なら、そこに挿入
+        if (left < key_to_insert && key_to_insert < right) {
+            m_slide_back(i);                                // i番目から後ろの要素を後ろにずらす
+            m_keys[i] = key_to_insert;                      // i番目にキーを登録
+            m_children[i+offset] = child_node_to_insert;    // (i+offset)番目に子ノードを登録
+            return true;
+        }
+
+        left = right;
+    }
+    return false;
+}
+
+// num番目から後ろの要素を1つずつ後ろへずらす
+void Node::m_slide_back(const int num) {
+    // 葉ノードの場合
+    if (is_leaf_node()) {
+        for (int j=M-1; j>=num+1; j--) {
+            m_keys[j] = m_keys[j-1];
+            m_children[j] = m_children[j-1];
+        }
+        m_total_keys += 1;
+        m_total_children += 1;
+    }
+    // 葉以外のノードの場合
+    else {
+        for (int j=m_total_keys; j>=num; j--) {
+            if (j > num) {
+                m_keys[j] = m_keys[j-1];
+            }
+            m_children[j+1] = m_children[j];
+        }
+        m_total_keys += 1;
+        m_total_children += 1;
+    }
+}
+
+// num番目から後ろの要素を1つずつ前へずらす
+void Node::m_slide_front(const int num) {
+    // 葉のノードの場合
+    if (is_leaf_node()) {
+        for (int j=num; j<=m_total_keys-2; j++) {
+            m_keys[j] = m_keys[j+1];
+            m_children[j] = m_children[j+1];
+        }
+
+        // 最後の要素は削除
+        m_keys[m_total_keys-1] = NAN;
+        m_children[m_total_keys-1] = nullptr;
+
+        m_total_keys -= 1;
+        m_total_children -= 1;
+    }
+    // 葉以外のノードの場合
+    else {
+        for (int j=num; j<=m_total_keys-1; j++) {
+            if (j >= 1) m_keys[j-1] = m_keys[j];
+            m_children[j] = m_children[j+1];
+        }
+        if (m_total_keys > 0) {
+            m_total_keys -= 1;
+        }
+        m_total_children -= 1;
+
+        // 最後の要素は削除
+        m_keys[m_total_keys] = NAN;
+        m_children[m_total_children] = nullptr;
     }
 }
