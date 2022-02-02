@@ -123,9 +123,7 @@ Node::Node(const int size, Node* parent, bool is_leaf) {
     m_parent_node = parent;
     m_is_leaf = is_leaf;
     m_is_empty = true;
-
-    // 配列の初期化
-    clear();
+    m_total_keys = 0;
 }
 
 // ノードに要素を追加
@@ -182,12 +180,6 @@ bool Node::del_key(const int key_to_delete) {
         }
     }
     return false;
-}
-
-// ノードの初期化
-void Node::clear() {
-    m_total_keys = 0;
-    m_is_empty = true;
 }
 
 // 親ノードの設定
@@ -281,11 +273,6 @@ void Node::update_keys() {
     if (!is_root_node()) {
         m_parent_node->update_keys();
     }
-}
-
-// 一番右にあるキー値の取り出し
-int Node::pull_last_key() {
-    return pull_key(m_total_keys-1);
 }
 
 // 子ノードの取得

@@ -25,9 +25,6 @@ public:
     // キーの削除
     bool del_key(const int key_to_delete);
 
-    // ノードの初期化
-    void clear();
-
     // 親ノードの設定
     void set_parent(Node* parent);
 
@@ -58,17 +55,11 @@ public:
     // キー値の更新
     void update_keys();
 
-    // 一番右にあるキー値の取り出し
-    int pull_last_key();
-
     // 子ノードの取得
     Node* get_child(const int num);
 
     // 子ノードを取り出し（取得してこのノードからは除去）
     Node* pull_child(const int num);
-
-    // 一番右にある子ノードを取り出し
-    Node* pull_last_child();
 
     // 親ノードを取得
     Node* get_parent();

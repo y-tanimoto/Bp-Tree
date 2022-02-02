@@ -59,6 +59,7 @@ bool Tree::del(const int key_to_delete) {
     return del(target_node, key_to_delete, nullptr);
 }
 bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
+    /*----------------親ノードから削除したいノード（）またはキー）を除去する------------*/
     // ノードから除去
     if (parent_node->is_leaf_node()) {
         parent_node->del_key(key_to_delete);
@@ -76,14 +77,15 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
         return true;
     }
 
+    /*----------------親ノードの要素数が条件に満たさない場合-------------*/
     // 要素数が条件に合致しないなら要素の移動やマージを行う
     // parent_nodeの隣接ノードを取得
     Node* next_node;
-    bool next_is_right_node = true;
+    bool next_is_right_node = true;     // 交換相手が右側の隣接ノードか
     // parent_nodeの部分木の最大値を持つ葉ノードから、右側の隣接ノードを取得
     Node* rightmost_leaf_node_next = m_search_leaf_node(parent_node->get_max_key_recursive())->get_right_node();
 
-    // 右側の隣接ノードが取得できた場合、右側の隣接ノードと要素の移動やマージを行う
+    // 葉ノードの右側の隣接ノードが取得できた場合、parent_nodeの右側の隣接ノードを取得して要素の移動やマージを行う
     if (rightmost_leaf_node_next != nullptr) {
         // 葉ノードの右側の隣接ノードから、parent_nodeと同じ高さの親ノードを取得
         next_node = rightmost_leaf_node_next;
@@ -91,63 +93,28 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
             next_node = next_node->get_parent();
         }
     }
-    // 右側の隣接ノードが取得できた場合、左側の隣接ノードと要素の移動やマージを行う
+    // 葉ノードの右側の隣接ノードが取得できなかった場合、parent_nodeの左側の隣接ノードを取得して要素の移動やマージを行う
     else {
-        // parent_nodeの部分木の最小値-1のキーが入り得るノードが、parent_nodeの左隣の部分木のうち最も右側の葉ノード
+        // parent_nodeの左隣の部分木の葉ノードを取得する
+        // (parent_nodeの部分木の最小値-1)のキーが入り得るノードが、parent_nodeの左隣の部分木のうち最も右側の葉ノード
         Node* leftmost_leaf_node_prev = m_search_leaf_node(parent_node->get_min_key_recursive() - 1);
         next_node = leftmost_leaf_node_prev;
         next_is_right_node = false;
     }
     // 葉ノードの右側（あるいは左側）の隣接ノードから、parent_nodeと同じ高さの親ノードを取得
+    // parent_nodeと同じ高さの親ノードがparent_nodeの隣接ノード
     while (next_node->get_height() != parent_node->get_height()) {
         next_node = next_node->get_parent();
     }
 
-    // 移動する個数 = 足りない子ノードの個数
-    int transfer_nodes;
-    if (parent_node->is_leaf_node()) {
-        transfer_nodes = parent_node->required() - parent_node->count_keys();
-    }
-    else {
-        transfer_nodes = parent_node->required() - parent_node->count_children();
-    }
-
-    // 隣接ノードからparent_nodeへ移動
-    // 隣接ノードからtransfer_nodes個除去しても条件を満たすなら、隣接ノードから移動
-    if (next_node->is_ok(-transfer_nodes)) {
-        // 隣接ノードが右側の隣接ノードなら、前から順にtransfer_nodes個分取り出して移動
-        if (next_is_right_node) {
-            for (int i=0; i<transfer_nodes; i++) {
-                if (parent_node->is_leaf_node()) {
-                    int transfer_key = next_node->pull_key(0);
-                    parent_node->add(transfer_key, nullptr);
-                }
-                else {
-                    Node* transfer_node = next_node->pull_child(0);
-                    parent_node->add(transfer_node->get_min_key_recursive(), transfer_node);
-                }
-            }
-        }
-        // 隣接ノードが左側の隣接ノードなら、うしろから順にtransfer_nodes個分取り出して移動
-        else {
-            if (parent_node->is_leaf_node()) {
-                int init_next_node_keys = next_node->count_keys();
-                for (int i=init_next_node_keys-1; i>init_next_node_keys-1-transfer_nodes; i--) {
-                    int transfer_key = next_node->pull_key(i);
-                    parent_node->add(transfer_key, nullptr);
-                }
-            }
-            else {
-                int init_next_node_keys = next_node->count_keys();
-                for (int i=init_next_node_keys-1; i>=init_next_node_keys-1-transfer_nodes; i--) {
-                    Node* transfer_node = next_node->pull_child(i);
-                    parent_node->add(transfer_node->get_min_key_recursive(), transfer_node);
-                }
-            }
-        }
+    /*----------------親ノードの隣接ノードから親ノードへ要素を移動-------------*/
+    // 隣接ノードから親ノードへ要素を移動できたら完了
+    if (m_move_children(next_node, parent_node, next_is_right_node)) {
         return true;
     }
+    // 隣接ノードの個数が条件を満たさなくなるなら移動せずマージへ
 
+    /*---------------親ノードの隣接ノードから移動できない場合、マージする------------*/
     // 隣接ノードから移動できない場合、マージする
     // 葉ノードの場合、parent_nodeの左隣のノードを右側のノードと隣接ノードとしてつなぐ
     if (parent_node->is_leaf_node() && !parent_node->is_root_node()) {
@@ -157,16 +124,8 @@ bool Tree::del(Node* parent_node, int key_to_delete, Node* node_to_delete) {
     }
 
     // マージ
-    if (parent_node->is_leaf_node()) {
-        for (int i=0; i<parent_node->count_keys(); i++) {
-            next_node->add(parent_node->pull_key(0), nullptr);
-        }
-    }
-    else {
-        for (int i=0; i<parent_node->count_children(); i++) {
-            next_node->add(parent_node->get_key(0), parent_node->pull_child(0));
-        }
-    }
+    // 親ノードの要素を隣接ノードへ
+    m_marge(parent_node, next_node);
 
     // parent_nodeの親ノードが根ノードの場合、根ノードの子ノードが2個以下であれば根ノードを付け替えて完了
     if (parent_node->get_parent()->is_root_node() && parent_node->get_parent()->count_children() <= 2) {
@@ -319,6 +278,70 @@ Node* Tree::m_div(Node* left_node, int key_to_add, Node* node_to_add) {
     }
 
     return right_node;
+}
+
+// ノードのもつ要素を移動(source_nodeからdist_nodeへ)
+bool Tree::m_move_children(Node* source_node, Node* dist_node, bool dist_is_right_node) {
+    // 移動する個数(transfer_nodes) = parent_nodeに足りない要素個数 = 必要な個数 - 現在の個数
+    int transfer_nodes;
+    if (dist_node->is_leaf_node()) {
+        transfer_nodes = dist_node->required() - dist_node->count_keys();
+    }
+    else {
+        transfer_nodes = dist_node->required() - dist_node->count_children();
+    }
+
+    // source_nodeからdist_nodeへ移動
+    // source_nodeからtransfer_nodes個除去しても条件を満たすなら、source_nodeからdist_nodeへ移動
+    if (source_node->is_ok(-transfer_nodes)) {
+        // 隣接ノードが右側の隣接ノードなら、前から順にtransfer_nodes個分取り出して移動
+        if (dist_is_right_node) {
+            for (int i=0; i<transfer_nodes; i++) {
+                if (dist_node->is_leaf_node()) {
+                    int transfer_key = source_node->pull_key(0);
+                    dist_node->add(transfer_key, nullptr);
+                }
+                else {
+                    Node* transfer_node = source_node->pull_child(0);
+                    dist_node->add(transfer_node->get_min_key_recursive(), transfer_node);
+                }
+            }
+        }
+        // 隣接ノードが左側の隣接ノードなら、うしろから順にtransfer_nodes個分取り出して移動
+        else {
+            if (dist_node->is_leaf_node()) {
+                int init_next_node_keys = source_node->count_keys();
+                for (int i=init_next_node_keys-1; i>init_next_node_keys-1-transfer_nodes; i--) {
+                    int transfer_key = source_node->pull_key(i);
+                    dist_node->add(transfer_key, nullptr);
+                }
+            }
+            else {
+                int init_next_node_keys = source_node->count_keys();
+                for (int i=init_next_node_keys-1; i>=init_next_node_keys-1-transfer_nodes; i--) {
+                    Node* transfer_node = source_node->pull_child(i);
+                    dist_node->add(transfer_node->get_min_key_recursive(), transfer_node);
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+// ノード同士をマージ
+// source_nodeの各要素をdist_nodeへ
+void Tree::m_marge(Node* source_node, Node* dist_node) {
+    if (source_node->is_leaf_node()) {
+        for (int i=0; i<source_node->count_keys(); i++) {
+            dist_node->add(source_node->pull_key(0), nullptr);
+        }
+    }
+    else {
+        for (int i=0; i<source_node->count_children(); i++) {
+            dist_node->add(source_node->get_key(0), source_node->pull_child(0));
+        }
+    }
 }
 
 // キーが入る葉ノードを探索
